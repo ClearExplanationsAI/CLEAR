@@ -1,0 +1,132 @@
+body{font-family: Calibri;
+margin-left: 15%;
+margin-right: 20%}
+
+
+h1{color: #e54867;
+    font-size: 35px;
+    margin-top: 20px;
+    margin-bottom: 10px;
+    width:100%;
+    text-align: left
+    font-family: Arial;}
+
+h2{color:darkblue;
+    margin-top: 20px;
+    font-size: 25px;
+    font-family: Arial;
+    margin-bottom: 20px}
+
+.main-text{text-align: justify;
+           margin-top: 10px;
+           float: left;
+           font-size: 20px;
+           width: 100%
+}
+
+.main-text2{text-align: justify;
+           margin-top: 0px; 
+           margin-bottom: 5px;
+           float: left;
+           font-size: 25px;
+           color: #6255f5;
+}
+
+.main-text3{text-align: justify;
+           margin-top: 10px;
+           float: left;
+           font-size: 20px;
+           width: 100%;
+    border-style: solid;
+    border-width: 2px;
+    border-color: #78efea;
+    width:300px;
+}
+
+
+
+
+.mystyle {
+    font-size: 12pt; 
+    font-family: Arial;
+    border-collapse: collapse; 
+    border: 1px solid #91dbed;
+
+}
+
+.mystyle td, th {
+    padding: 5px;
+}
+
+.mystyle tr:nth-child(even) {
+    background: #78efea;
+}
+
+.mystyle tr:hover {
+    background: silver;
+    cursor: pointer;
+}    
+
+
+
+.regress-section {
+    display: flex;
+}
+
+
+.reg-div {
+    width: 25%;
+}
+
+.reg-div1 {
+   margin-left: 15pt;
+   width:60%;    
+    
+}
+
+hr {
+    background-color: darkblue;
+    color: darkblue;
+    border: none;
+    height: 2px;
+    
+
+}
+
+
+img {
+    margin-left: 20pt;
+    margin-top: 10pt;
+    margin-bottom: 0pt;
+    margin-right: 10pt;
+    height: auto%;
+    width: 80%;
+    align-self: flex-start
+    
+}
+
+
+.CLIMEdataset {
+    font-size: 30px;
+    color: #1df24e;  
+}
+
+
+.smallerText{
+    font-size: 12pt;
+    color:red;
+}
+
+
+
+
+.AI_prob {
+    color: red;
+    font-size: 15;    
+}
+
+.clear {
+    clear: both;
+    margin-top: 0;
+    margin-bottom: 0;
+}

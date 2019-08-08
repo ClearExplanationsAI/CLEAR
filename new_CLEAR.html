@@ -1,0 +1,142 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title> CLIME Report</title>
+        <link rel="stylesheet" type="text/css" href="CLEAR.css">
+    </head>
+
+    <body>
+
+        <div class="first-div">
+        <h1>CLIME Report:&nbsp   <span class="CLIMEdataset">
+            BreastC</span></h1>
+            <hr class="clear">
+            <span class="main-text2"> Prediction to be explained:&nbsp Observation&nbsp<span class="AI_prob">8</span> has <span class="AI_prob">0.00054</span> probability of breast cancer </span>    
+        <hr class="clear">
+        
+        </div>      
+        <div>
+            <h2>Counterfactual Results</h2>
+            <p class= "main-text">These are the results of carrying out a grid search on the <strong>target</strong>  AI system. <br><span class="smallerText">("Counterfactual value" = value needed to be at the decision boundary).</span> </p>  
+            
+           <table border="1" class="dataframe mystyle">
+  <thead>
+    <tr style="text-align: left;">
+      <th>feature</th>
+      <th>input value</th>
+      <th>counterfactual value</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>concavepoints</td>
+      <td>-0.72</td>
+      <td>2.7</td>
+    </tr>
+  </tbody>
+</table>
+
+        </div>
+        <br>
+     <hr>    
+        <h2>Regression Results</h2> 
+        <section class= "regress-section">
+        <div class= "reg-div">
+            <p class="main-text"> Key Features.<br><span class="smallerText">(These are the features with largest absolute <em>coefficients</em>).</span>  
+            </p>
+            <table border="1" class="dataframe mystyle">
+  <thead>
+    <tr style="text-align: left;">
+      <th>feature</th>
+      <th>input value</th>
+      <th>coeff</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>concavepoints</td>
+      <td>-0.72</td>
+      <td>0.24</td>
+    </tr>
+    <tr>
+      <td>texture</td>
+      <td>-1.1</td>
+      <td>0.18</td>
+    </tr>
+    <tr>
+      <td>concavity</td>
+      <td>-0.64</td>
+      <td>0.12</td>
+    </tr>
+    <tr>
+      <td>area</td>
+      <td>-0.4</td>
+      <td>0.11</td>
+    </tr>
+    <tr>
+      <td>smoothness</td>
+      <td>-0.15</td>
+      <td>0.094</td>
+    </tr>
+    <tr>
+      <td>texture_concavepoints</td>
+      <td>0.83</td>
+      <td>0.092</td>
+    </tr>
+    <tr>
+      <td>concavity_concavepoints</td>
+      <td>0.46</td>
+      <td>0.082</td>
+    </tr>
+    <tr>
+      <td>fractaldimension</td>
+      <td>1.3</td>
+      <td>-0.079</td>
+    </tr>
+    <tr>
+      <td>radius</td>
+      <td>-0.33</td>
+      <td>0.079</td>
+    </tr>
+    <tr>
+      <td>perimeter_area</td>
+      <td>0.13</td>
+      <td>0.059</td>
+    </tr>
+  </tbody>
+</table>        
+        </div>
+        <div class= "reg-div1">
+            <img src="CLEAR_plot.png" alt="Regression plot">
+            <p></p>
+            prediction = 0.48 + 0.24 concavepoints + 0.18 texture + 0.12 concavity - 0.079 fractaldimension + 0.094 smoothness + 0.079 radius + 0.11 area + 0.054 texture*concavity + 0.092 texture*concavepoints + 0.059 perimeter*area + 0.082 concavity*concavepoints + 0.05 perimeter + 0.053 texture*smoothness + 0.047 smoothness*symmetry      
+        </div>
+        <div>
+           <p class="main-text"> Regression model's estimates of counterfactual values:</p><table border="1" class="dataframe mystyle">
+  <thead>
+    <tr style="text-align: left;">
+      <th>feature</th>
+      <th>counterfactual value</th>
+      <th>fidelity error</th>
+    </tr>
+  </thead>
+  <tbody>
+    <tr>
+      <td>concavepoints</td>
+      <td>5.3</td>
+      <td>2.6</td>
+    </tr>
+  </tbody>
+</table>
+            <br><br><br>
+            <p class="main-text3"> &nbsp Quality of regression statistic:<br><br>
+                &nbsp Adjusted R-Squared =
+            0.94</p>
+        </div>    
+       </section>
+    </body>
+
+
+</html>

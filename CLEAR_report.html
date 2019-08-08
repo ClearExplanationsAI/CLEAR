@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html>
+
+    <head>
+        <meta charset="UTF-8">
+        <title> CLIME Report</title>
+        <link rel="stylesheet" type="text/css" href="CLEAR.css">
+    </head>
+
+    <body>
+
+        <div class="first-div">
+        <h1>CLIME Report:&nbsp   <span class="CLIMEdataset">
+            {{dataset_name}}</span></h1>
+            <hr class="clear">
+            <span class="main-text2"> Prediction to be explained:&nbsp Observation&nbsp<span class="AI_prob">{{observation_number}}</span> has <span class="AI_prob">{{AI_prediction}}</span> probability of {{explanadum}} </span>    
+        <hr class="clear">
+        
+        </div>      
+        <div>
+            <h2>Counterfactual Results</h2>
+            <p class= "main-text">These are the results of carrying out a grid search on the <strong>target</strong>  AI system. <br><span class="smallerText">("Counterfactual value" = value needed to be at the decision boundary).</span> </p>  
+            
+           {{counterfactual_table}}
+
+        </div>
+        <br>
+     <hr>    
+        <h2>Regression Results</h2> 
+        <section class= "regress-section">
+        <div class= "reg-div">
+            <p class="main-text"> Key Features.<br><span class="smallerText">(These are the features with largest absolute <em>coefficients</em>).</span>  
+            </p>
+            {{ regression_table }}        
+        </div>
+        <div class= "reg-div1">
+            <img src="CLEAR_plot.png" alt="Regression plot">
+            <p></p>
+            {{ regression_formula }}      
+        </div>
+        <div>
+           <p class="main-text"> Regression model's estimates of counterfactual values:</p>{{reg_counterfactuals}}
+            <br><br><br>
+            <p class="main-text3"> &nbsp Quality of regression statistic:<br><br>
+                &nbsp {{regression_type}} =
+            {{prediction_score}}</p>
+        </div>    
+       </section>
+    </body>
+
+
+</html>
