@@ -1,8 +1,5 @@
 # Counterfactual Local Explanations via Regression (CLEAR)
 
-This repository has been created to provide access to the code to the version of CLEAR that was used for the Neurips submission
-"Measurable Counterfactual Local Explanations for Any Classifier"
-
 CLEAR explains single predictions of machine learning classifiers. It is based on the view that a satisfactory explanation of a single prediction needs to both
 explain the value of that prediction and answer ’what-if-things-had-been-different’ questions. In doing this it needs to state the relative importance of the input features and show how they interact. A
 satisfactory explanation must also be measurable and state how well it can explain a model. It *must know when it does not know*
