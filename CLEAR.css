@@ -17,9 +17,8 @@ h2{color:darkblue;
     font-family: Arial;
     margin-bottom: 20px}
 
-.main-text{text-align: justify;
+.main-text{align-self: flex-start;
            margin-top: 10px;
-           float: left;
            font-size: 20px;
            width: 100%
 }
@@ -36,7 +35,7 @@ h2{color:darkblue;
            margin-top: 10px;
            float: left;
            font-size: 20px;
-           width: 100%;
+           width: 20%;
     border-style: solid;
     border-width: 2px;
     border-color: #78efea;
@@ -75,12 +74,10 @@ h2{color:darkblue;
 
 
 .reg-div {
-    width: 25%;
+    width: 40%;
 }
 
-.reg-div1 {
-   margin-left: 15pt;
-   width:60%;    
+    
     
 }
 
@@ -106,7 +103,7 @@ img {
 }
 
 
-.CLIMEdataset {
+.CLEARdataset {
     font-size: 30px;
     color: #1df24e;  
 }
@@ -129,4 +126,62 @@ img {
     clear: both;
     margin-top: 0;
     margin-bottom: 0;
+}
+
+
+
+
+button {
+    border-width: medium;
+    margin: 10px;    
+}
+
+
+.regression-counterfactuals {
+    
+    width: 25%;
+        
+}
+
+.actual-counterfactuals {
+    float:left;
+    width: 25%
+}
+
+
+
+.clearfix:after {
+    content: "";
+    display: table;
+    clear: both;
+}
+
+.flexi-cont {
+    display: flex; 
+    flex-direction: row;  
+    align-items: flex-end;
+    justify-content: space-between
+}
+
+.counterfactual-table {
+    width: 30%
+}
+
+
+.simplify-formula {
+    width: 100%;
+    margin-left: 25%;
+    
+}
+
+.reg-formula {
+    margin-left: 5%;
+    margin-right: 5%;
+    align-self: center;
+    font-size: 120%;
+}
+
+.reg-GRAPH {
+    width: 40%;
+    align-items: center
 }

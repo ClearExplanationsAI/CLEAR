@@ -39,12 +39,10 @@ function inFormula(featuresChk,regressTerm) {
   return false;
 }
 
-function logicProcess(evt) {
-    // All your other code
-    evt.preventDefault();
-}
 
-
+var regressionTable = document.querySelector("#reg-div")
+regressionTable.innerHTML = regressionTable.innerHTML.replace(/_sqrd/g,'<sup>2<\sup>');
+regressionTable.innerHTML = regressionTable.innerHTML.replace(/_/g,'*');
 var simplifiedRegressFormula = document.querySelector('#simplified-equation')
 var inputSpreadData=(document.querySelector('#spreadsheet-data'))
 var inputWeightData=(document.querySelector('#weights'))
@@ -76,10 +74,7 @@ for (var i = 0; i < features.length; i++) {
 
 myFieldSet = document.getElementById("Select-features"); 
 
-var button = document.createElement("button");
-button.innerHTML = "Run";
-myFieldSet.appendChild(button);
-// hide books
+var button = document.querySelector("#Select-button");
 
 const hideBox = document.querySelector('#simplify');
 hideBox.checked = false
@@ -109,8 +104,16 @@ for (var i = 0; i < temp.length; i++) {
 }
 
 var regressFormula = document.querySelector('#regression-formula');
-regressFormula=regressFormula.innerText.split('+').join(',').split('-').join(',').split('=').join(',').split(','); 
-
+regressFormula = regressFormula.innerHTML
+regressFormula=regressFormula.substring(regressFormula.lastIndexOf('=') +1) 
+regressFormula = regressFormula.replace(/ /,'')   
+if (regressFormula[0]=="-"){
+  regressFormula=regressFormula.substring(1)   
+}
+regressFormula=regressFormula.split('+').join(',').split('-').join(',').split(','); 
+if  (isNaN(Number(regressFormula[0]))==false){
+    regressFormula.shift()
+}
     
 var spread_data=convertData(document.querySelector('#spreadsheet-data'))
 var weight_data=convertData(document.querySelector('#weights'))
@@ -119,22 +122,23 @@ var newWeight=0;
 var nextSpread =0;  
 var nextWeight=0;
 var simplified_regress= ""
-var charToSkip=2;
-if (inputRegressionType.innerHTML=="logistic"){
-    charToSkip=6};
-for (var i = 0; i < spread_data.length; i++) {
+for (var i = 0; i < weight_data.length; i++) {
     
-    var regressTerm= regressFormula[i+charToSkip];
-    if(inFormula(featuresChk,regressTerm)){
-        if(regressTerm.includes("-")== false){
-            regressTerm = "+ ".concat(regressTerm);
-        }
-        simplified_regress += regressTerm}
-    else {
-        nextSpread = Number(spread_data[i]);
-        nextWeight = Number(weight_data[i]);
-        newWeight += nextSpread*nextWeight};  
+    var regressTerm= regressFormula[i];    
+    if  (isNaN(Number(regressTerm))) {  // checks regressTerm is not just a number
+        if(inFormula(featuresChk,regressTerm)){
+            if(Math.sign(Number(weight_data[i]))==-1){
+                         regressTerm = "- ".concat(regressTerm);}
+            else {regressTerm = "+ ".concat(regressTerm);}
+            simplified_regress += regressTerm;}
+        else {
+            nextSpread = Number(spread_data[i]);
+            nextWeight = Number(weight_data[i]);
+            newWeight += nextSpread*nextWeight;}}  
 }
+
+
+    
 newWeight +=Number(intercept);
 newWeight =strTo2dp(newWeight)
 if (inputRegressionType.innerHTML=="logistic"){
