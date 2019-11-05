@@ -13,7 +13,7 @@
         <h1>CLEAR Report:&nbsp   <span class="CLEARdataset">
             PIMA</span></h1>
             <hr class="clear">
-            <span class="main-text2"> Prediction to be explained:&nbsp Observation&nbsp<span class="AI_prob">10</span> has <span class="AI_prob">0.97</span> probability of diabetes </span>    
+            <span class="main-text2"> Prediction to be explained:&nbsp Observation&nbsp<span class="AI_prob">1</span> has <span class="AI_prob">0.6</span> probability of diabetes </span>    
         <hr class="clear">
         <h2><i>b</i>-Counterfactual Results</h2>
         </div>   
@@ -32,16 +32,36 @@
   </thead>
   <tbody>
     <tr>
+      <td>Pregnancy</td>
+      <td>0.37</td>
+      <td>-0.49</td>
+    </tr>
+    <tr>
       <td>Glucose</td>
-      <td>0.96</td>
-      <td>-1.39</td>
+      <td>0.54</td>
+      <td>0.38</td>
+    </tr>
+    <tr>
+      <td>Skin</td>
+      <td>0.017</td>
+      <td>-1.89</td>
+    </tr>
+    <tr>
+      <td>BMI</td>
+      <td>2.5</td>
+      <td>0.09</td>
+    </tr>
+    <tr>
+      <td>Age</td>
+      <td>0.36</td>
+      <td>0.15</td>
     </tr>
   </tbody>
 </table></p>
             </div>
             
             <div class= "reg-formula">
-                <p id="regression-formula">prediction = 0.47 - 0.051 BloodP + 0.02 Skin + 0.17 BMI + 0.14 Pregnancy + 0.3 Glucose - 0.038 Insulin + 0.076 DiabF + 0.31 Age - 0.04 (IndicatorFeature*Age) - 0.094 (Pregnancy*Age) - 0.065 Glucose<sup>2</sup> - 0.078 (Glucose*BMI) - 0.062 (Glucose*Age) - 0.049 Age<sup>2</sup></p>       
+                <p id="regression-formula">prediction = 0.46 - 0.048 BloodP - 0.0056 Skin + 0.15 BMI + 0.0038 Pregnancy + 0.39 Glucose + 0.058 Insulin + 0.059 DiabF + 0.13 Age + 0.056 (Insulin*Age) + 0.041 (Pregnancy*Insulin) - 0.044 Age<sup>2</sup> - 0.062 (Glucose*BloodP) - 0.058 (BloodP*Insulin) - 0.032 BMI<sup>2</sup></p>       
                 
                 <form  id="Simplify-regression">
                     <input type="checkbox" id="simplify" />
@@ -70,9 +90,29 @@
   </thead>
   <tbody>
     <tr>
+      <td>Pregnancy</td>
+      <td>-16</td>
+      <td>16</td>
+    </tr>
+    <tr>
       <td>Glucose</td>
-      <td>-1.1</td>
-      <td>0.28</td>
+      <td>0.058</td>
+      <td>0.32</td>
+    </tr>
+    <tr>
+      <td>Skin</td>
+      <td>17</td>
+      <td>19</td>
+    </tr>
+    <tr>
+      <td>BMI</td>
+      <td>0.65</td>
+      <td>0.56</td>
+    </tr>
+    <tr>
+      <td>Age</td>
+      <td>-0.38</td>
+      <td>0.53</td>
     </tr>
   </tbody>
 </table></p>
@@ -99,54 +139,54 @@
   </thead>
   <tbody>
     <tr>
-      <td>Age</td>
-      <td>0.79</td>
-      <td>0.31</td>
-    </tr>
-    <tr>
       <td>Glucose</td>
-      <td>0.96</td>
-      <td>0.3</td>
+      <td>0.54</td>
+      <td>0.39</td>
     </tr>
     <tr>
       <td>BMI</td>
-      <td>0.38</td>
-      <td>0.17</td>
+      <td>2.5</td>
+      <td>0.15</td>
     </tr>
     <tr>
-      <td>Pregnancy</td>
-      <td>0.98</td>
-      <td>0.14</td>
+      <td>Age</td>
+      <td>0.36</td>
+      <td>0.13</td>
     </tr>
     <tr>
-      <td>(Pregnancy_Age)</td>
-      <td>0.77</td>
-      <td>-0.094</td>
-    </tr>
-    <tr>
-      <td>(Glucose_BMI)</td>
-      <td>0.37</td>
-      <td>-0.078</td>
-    </tr>
-    <tr>
-      <td>DiabF</td>
-      <td>0.63</td>
-      <td>0.076</td>
-    </tr>
-    <tr>
-      <td>Glucose_sqrd</td>
-      <td>0.92</td>
-      <td>-0.065</td>
-    </tr>
-    <tr>
-      <td>(Glucose_Age)</td>
-      <td>0.76</td>
+      <td>(Glucose_BloodP)</td>
+      <td>1.7</td>
       <td>-0.062</td>
     </tr>
     <tr>
+      <td>DiabF</td>
+      <td>-0.77</td>
+      <td>0.059</td>
+    </tr>
+    <tr>
+      <td>(BloodP_Insulin)</td>
+      <td>0.16</td>
+      <td>-0.058</td>
+    </tr>
+    <tr>
+      <td>Insulin</td>
+      <td>0.051</td>
+      <td>0.058</td>
+    </tr>
+    <tr>
+      <td>(Insulin_Age)</td>
+      <td>0.018</td>
+      <td>0.056</td>
+    </tr>
+    <tr>
       <td>BloodP</td>
-      <td>-0.47</td>
-      <td>-0.051</td>
+      <td>3.1</td>
+      <td>-0.048</td>
+    </tr>
+    <tr>
+      <td>Age_sqrd</td>
+      <td>0.13</td>
+      <td>-0.044</td>
     </tr>
   </tbody>
 </table> </p>       
@@ -159,17 +199,17 @@
         <div>
              <p class="main-text3"> &nbsp Quality of regression statistic:<br><br>
                 &nbsp Adjusted R-Squared =
-            0.98</p>
+            0.86</p>
         </div>    
        </section>
         
     
         
        <div id="feature-list"> 
-           <p id="features"> ['Pregnancy', 'Glucose', 'BloodP', 'Skin', 'Insulin', 'BMI', 'DiabF', 'Age', 'IndicatorFeature'] </p>  
-           <p id="spreadsheet-data"> [-0.47218794983380563, 1.437617410038844, 0.38007938007846775, 0.9762615442425168, 0.9612461432883811, 2.4721508305029607, 0.6312336482937541, 0.7935986627827464, 0.0, 0.7747598560370803, 0.9239941479867869, 0.36534983824386585, 0.7628436539187314, 0.6297988375705632] </p>  
-           <p id="weights"> [-0.051331826304763226, 0.020427154734992375, 0.16767756248550683, 0.13657794954239869, 0.29527705583445985, -0.038260255112148596, 0.0759012227844578, 0.31021132356709946, -0.0403305148879675, -0.094498334169005, -0.06522413664463247, -0.07806774301487243, -0.062298543605196134, -0.048796404482886184] </p>
-           <p id ="intercept">0.4744250571484426</p>
+           <p id="features"> ['Pregnancy', 'Glucose', 'BloodP', 'Skin', 'Insulin', 'BMI', 'DiabF', 'Age'] </p>  
+           <p id="spreadsheet-data"> [3.0767556169068184, 0.016744759537567572, 2.519890136339334, 0.3744085492256247, 0.53693120065909, 0.050803839150578116, -0.770276049307099, 0.3597727983070522, 0.018277839375944863, 0.01902139171145995, 0.12943646640168688, 1.652006087520377, 0.15631099746697175, 6.349846299220266] </p>  
+           <p id="weights"> [-0.04827780976593031, -0.0056134994499474865, 0.15385491266569779, 0.003835410498457781, 0.39294646648444176, 0.057523960428184785, 0.059350008414438236, 0.1272027771596374, 0.05621807162262462, 0.04130007388558816, -0.04361888312995049, -0.06154450022421916, -0.058195768230681066, -0.03216192249743127] </p>
+           <p id ="intercept">0.46192342318524204</p>
            <p id ="regression-type">multiple</p>
        </div>
         
