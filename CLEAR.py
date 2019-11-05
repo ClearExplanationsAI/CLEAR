@@ -33,7 +33,7 @@ for neighbour_seed in range(0, CLEAR_settings.num_iterations):
             for c in range(num_class):
                 (results_df, explainer,boundary_df) = CLEAR_regression.Run_Regressions(X_test_sample, explainer, multi_index)
                 (nn_df, miss_df) = CLEAR_perturbations.Calculate_Perturbations(explainer, results_df, boundary_df, multi_index)
-                if multi_index == 0:
+                if (multi_index == 0 and CLEAR_settings.multi_class_focus == 'All') or num_class == 1 :
                     nncomp_df = nn_df.copy(deep=True)
                     missing_log_df= miss_df.copy(deep=True)
                 else:
