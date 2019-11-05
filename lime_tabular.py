@@ -296,12 +296,12 @@ class LimeTabularExplainer(object):
                 temp.columns = temp.columns.str.replace(r"[_]", "Dd")
                 temp.columns = temp.columns.str.replace(r"[.0]", "")
                 temp.rename(columns={'eduDd':'eduDd0', 'marDd':'marDd0','occDd':'occDd0','workDd':'workDd0'}, inplace=True)
-                temp.rename(columns={'eduDd0':'eduDdBachelors', 'eduDd1':'eduDdCommunityCollege', \
-                                     'eduDd2':'eduDdDoctorate','eduDd3':'eduDdHighGrad', \
-                                     'eduDd4':'eduDdMasters','eduDd5':'eduDdProfSchool', \
+                temp.rename(columns={'eduDd0':'eduDdBachelors', 'eduDd1':'eduDdCommunityCollege',
+                                     'eduDd2':'eduDdDoctorate','eduDd3':'eduDdHighGrad',
+                                     'eduDd4':'eduDdMasters','eduDd5':'eduDdProfSchool',
                                      'eduDd6':'eduDddropout'}, inplace=True)
-                temp.rename(columns={'occDd0':'occDdBlueCollar', 'occDd1':'occDdExecManagerial', \
-                                 'occDd2':'occDdProfSpecialty','occDd3':'occDdSales', \
+                temp.rename(columns={'occDd0':'occDdBlueCollar', 'occDd1':'occDdExecManagerial',
+                                 'occDd2':'occDdProfSpecialty','occDd3':'occDdSales',
                                  'occDd4':'occDdServices'}, inplace=True)
                 temp.rename(columns={'workDd1':'workDdGov', 'workDd2':'workDdPrivate'}, inplace=True)
                 
@@ -309,34 +309,32 @@ class LimeTabularExplainer(object):
                 temp.rename(columns={'genDd1':'genDdFemale', 'genDd2':'genDdMale'}, inplace=True)
                 temp.rename(columns={'eduDd':'eduDd0', 'marDd':'marDd0','occDd':'occDd0','workDd':'workDd0'}, inplace=True)
                 if len(temp.columns) !=20:
-                    for x in ['age','hoursPerWeek','eduDdBachelors','eduDdCommunityCollege','eduDdDoctorate',\
-                              'eduDdHighGrad','eduDdMasters','eduDdProfSchool','eduDddropout','occDdBlueCollar',\
-                              'occDdExecManagerial','occDdProfSpecialty','occDdSales','occDdServices',\
+                    for x in ['age','hoursPerWeek','eduDdBachelors','eduDdCommunityCollege','eduDdDoctorate',
+                              'eduDdHighGrad','eduDdMasters','eduDdProfSchool','eduDddropout','occDdBlueCollar',
+                              'occDdExecManagerial','occDdProfSpecialty','occDdSales','occDdServices',
                               'workDdGov','workDdPrivate','marDdmarried','marDdnotmarried','genDdFemale','genDdMale']:
                       if x not in temp:
                           temp[x]=0
-                          
-                          
-                          
-                          
-                          
-            LIME_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-                  x=temp,
-                  batch_size=15000,
-                  num_epochs=1,
-                  shuffle=False)
-            predictions = predict_fn.predict(LIME_pred_input_func)
-    
-            y=np.array([])
-            try:
-                for p in predictions:
-                   y= np.append(y, p['probabilities'])
-                yss= np.reshape(y,(-1,2))   
-            except:
-                temp=9
-        
-        else:    
-            yss = predict_fn(inverse)
+
+            if CLEAR_settings.multi_class == True:
+
+                     yss = predict_fn.predict_proba(temp.values)
+
+
+            else:
+                    LIME_pred_input_func = tf.estimator.inputs.pandas_input_fn(
+                          x=temp,
+                          batch_size=15000,
+                          num_epochs=1,
+                          shuffle=False)
+                    predictions = predict_fn.predict(LIME_pred_input_func)
+
+                    y=np.array([])
+                    for p in predictions:
+                       y= np.append(y, p['probabilities'])
+                    yss= np.reshape(y,(-1,2))
+        else:
+                    yss = predict_fn(inverse)
             
 
         # for classification, the model needs to provide a list of tuples - classes
@@ -416,9 +414,9 @@ class LimeTabularExplainer(object):
         if self.mode == "classification":
             ret_exp.predict_proba = yss[0]
             if top_labels:
-                labels = np.argsort(yss[0])[-top_labels:]
+                labels = [int(x) for x in self.class_names]
                 ret_exp.top_labels = list(labels)
-                ret_exp.top_labels.reverse()
+                #ret_exp.top_labels.reverse()
         else:
             ret_exp.predicted_value = predicted_value
             ret_exp.min_value = min_y
@@ -428,7 +426,7 @@ class LimeTabularExplainer(object):
         for label in labels:
             (ret_exp.intercept[label],
              ret_exp.local_exp[label],
-             ret_exp.score, ret_exp.local_pred) = self.base.explain_instance_with_data(
+             ret_exp.score[label], ret_exp.local_pred[label]) = self.base.explain_instance_with_data(
                     scaled_data,
                     yss,
                     distances,
@@ -438,7 +436,7 @@ class LimeTabularExplainer(object):
                     feature_selection=self.feature_selection)
 #me
             if CLEAR_settings.LIME_comparison== True:
-                export_data = [label,yss[0],data_row,ret_exp.local_exp[label],ret_exp.local_pred[0]]
+                export_data = [label,yss[label],data_row,ret_exp.local_exp[label],ret_exp.local_pred[label]]
                 with open('LIME_CLEAR_chk.csv','a', newline='') as f:
                     writer = csv.writer(f)
                     writer.writerow(export_data)

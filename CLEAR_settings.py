@@ -19,10 +19,10 @@ def init():
 
     case_study = 'PIMA'  # 'Credit Card','PIMA','Census','BreastC','IRIS'
     max_predictors = 15 # maximum number of dependent variables in stepwise regression
-    first_obs = 10
-    last_obs = 10 # number of observations to analyse in CLEAR test dataset Census 115/225 in test1 PIMA 115 in test1
+    first_obs = 1
+    last_obs = 2 # number of observations to analyse in CLEAR test dataset Census 115/225 in test1 PIMA 115 in test1
     # Credit 104
-    num_samples = 50000  # number of observations to generate in Synthetic Dataset. Default 50000
+    num_samples = 5000  # number of observations to generate in Synthetic Dataset. Default 50000
     regression_type = 'multiple'  # 'multiple' 'logistic'
     score_type = 'adjR'  # prsquared is McFadden Pseudo R-squared. Can also be
     #                          set to aic or adjR (adjusted R-squared)
@@ -30,14 +30,14 @@ def init():
     regression_sample_size = 200  # minimum number of observations in local regression. Default 200
     feature_with_indicator = 'Glucose'  # age,Glucose
     CLEAR_path = 'D:/CLEAR/'  # 'D:/CLEAR/''/content/drive/My Drive/Colab/'
-    with_indicator_feature = True  # whether to use this indicator variable
+    with_indicator_feature = False  # whether to use this indicator variable
     indicator_threshold = 1.5  # threshold for indicator variable # for PAY 0 0=0.1, 1 =0.91
     neighbourhood_algorithm = 'Balanced'  # default is L3 . Tested against Unbalanced
     perturb_one_feature = False  # perturb only one feature eg 'age'
     only_feature_perturbed = 'age'  # the single feature that is perturbed if
     # 'perturb_one_feature' = True
     apply_counterfactual_weights = False
-    counterfactual_weight = 9  # default to 9
+    counterfactual_weight = 9  # default to 9-
     generate_regression_files = False
     num_iterations = 1
     # Parameters for evaluating the effects of different parts of CLEAR's regression
@@ -45,8 +45,8 @@ def init():
     no_centering = False
     no_polynomimals = False
     # Parameters for comparing CLEAR with LIME
-    LIME_comparison = False
-    LIME_sample = 15000  # number of synthetic data-points generated
+    LIME_comparison = True
+    LIME_sample = 5000  # number of synthetic data-points generated
     LIME_kernel = 2  # LIME kernel width. Set to None to use Ribeiro et al.'s default formula
     # parameters for multi-class datasets
     multi_class = False

@@ -202,12 +202,12 @@ def adjust_neighbourhood(explainer, target_rows, num_copies):
 def create_neighbourhood(explainer):
     # =============================================================================
     #     Generates a Neighbourhood Dataset for each observation and then performs stepwise regressions.
-    #     The regressions can be polynomail and can also include interaction terms
+    #     The regressions can be polynomial and can also include interaction terms
     #     The regressions can either be either multiple or logistic regressions and
     #     can be scored using AIC, adjusted R-squared or McFadden's pseudo R-squared
     # =============================================================================
 
-    # NEED TO REMOVE EXPERIMENT
+
     if CLEAR_settings.neighbourhood_algorithm == 'Balanced':
         if (explainer.local_df.loc[0, 'prediction'] >= 0.1) & (explainer.local_df.loc[0, 'prediction'] <= 0.9):
             neighbour_pt1 = 0.1
