@@ -402,7 +402,7 @@ def perform_regression(explainer):
             non_null_educ = [col for col in educ if (X.loc[:, col].sum() >= 10)]
             selected = ['1', 'age', 'hoursPerWeek']
             selected = selected + non_null_educ
-            # Because of the large number of features in the Census dataset, the folowing featurees are excluded:
+            # Because of the large number of features in the Census dataset, the following featurees are excluded:
             # (i) education features that are have low occurrences (ii) features which would NOT change the
             # classification of the observation, if they were independently altered.
             # These rule was adopted to improve the run time for the stepwise regressions.

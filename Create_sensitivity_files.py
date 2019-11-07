@@ -114,12 +114,6 @@ def Create_sensitivity():
                 temp_df = pd.DataFrame(
                     columns=['observation', 'feature', 'newnn_class', 'probability', 'new_value'])
                 cnt = 0
-                if CLEAR_settings.case_study == 'Census':
-                    first_obs =1
-                    last_obs=X_test_sample.shape[0]
-                else:
-                    first_obs =CLEAR_settings.first_obs
-                    last_obs=CLEAR_settings.last_obs
                 for i in range(CLEAR_settings.first_obs, CLEAR_settings.last_obs + 1):
                     for j in numeric_features:
                         for k in range(sensitivity_num):

@@ -536,6 +536,8 @@ def Single_prediction_report(results_df, nncomp_df, regression_obj, feature_list
         explanandum = 'breast cancer'
 
     def round_sig(x, sig=2):
+        if type(x) == np.ndarray:
+            x=x[0]
         return round(x, sig - int(floor(log10(abs(x)))) - 1)
 
     j = results_df.index.values[0]

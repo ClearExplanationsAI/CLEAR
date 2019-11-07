@@ -114,7 +114,7 @@ def Create_BreastC_Datasets():
     feature_list = X.columns.tolist()
     numeric_features = feature_list
     category_prefix = []
-    y = df['Outcome']
+    y = df['diagnosis']
     (X_train, X_test_sample, model) \
         =Create_Dataset(df, X, y, feature_list, numeric_features)
     return(X_train, X_test_sample, model, numeric_features, category_prefix, feature_list)
@@ -204,7 +204,7 @@ def Create_Dataset(df, X, y, feature_list, numeric_features):
     elif CLEAR_settings.case_study== 'Credit Card':
         test_size= 0.9
     elif CLEAR_settings.case_study== 'Census':
-        test_size= 0.005 # was 0.7
+        test_size= 0.02
     else:
         test_size = 0.7
 

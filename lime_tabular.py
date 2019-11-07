@@ -316,7 +316,7 @@ class LimeTabularExplainer(object):
                       if x not in temp:
                           temp[x]=0
 
-            if CLEAR_settings.multi_class == True:
+            if CLEAR_settings.use_sklearn is True:
 
                      yss = predict_fn.predict_proba(temp.values)
 
