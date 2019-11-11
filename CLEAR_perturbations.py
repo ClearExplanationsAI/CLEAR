@@ -128,6 +128,13 @@ def Calculate_Perturbations(explainer, results_df, boundary_df, multi_index=None
                         missing_log_df.loc[idx, 'observation'] = i
                         missing_log_df.loc[idx, 'reason'] = 'not in formula'
                     break
+                temp_df = explainer.sensit_df[
+                    (explainer.sensit_df['observation'] == i) & (
+                                explainer.sensit_df['feature'] == target_feature)]
+                temp_df = temp_df['probability'].agg(['min', 'max'])
+                temp = 0.5
+                if not (temp_df['min'] <= temp) & (temp_df['max'] > temp):
+                    break
             else:
                 target_feature = explainer.feature_list[j]
 
@@ -405,7 +412,7 @@ def Calculate_Perturbations(explainer, results_df, boundary_df, multi_index=None
                 s2.iloc[0, j] = new_value
                 nncomp_idx = i * 10 + j
 
-                if CLEAR_settings.multi_class is True:
+                if CLEAR_settings.multi_class and CLEAR_settings.use_sklearn is True:
                     predictions = explainer.model.predict_proba(s2.values)
                     prob_with_new_value = predictions[0, multi_index]
                     newnn_class = np.argmax(predictions)
@@ -454,7 +461,7 @@ def Calculate_Perturbations(explainer, results_df, boundary_df, multi_index=None
     percentiles = []
     for h in nncomp_df.index:
         i = nncomp_df.loc[h, 'observation']
-        if CLEAR_settings.case_study == 'Census':
+        if CLEAR_settings.case_study == 'Census' and CLEAR_settings.restrict_to_counterfactual_obs is True:
             i = np.where(sensitivity_idx == 1)[0][i]
         # change to feature = nncomp_df.loc[h,'feature']????
         g = nncomp_df.loc[h, 'feature']

@@ -172,8 +172,9 @@ def Create_sensitivity():
             sensitivity_df = pd.read_csv(CLEAR_settings.CLEAR_path + 'Final_cens_sensitivity2.csv')
         temp_df = sensitivity_df.groupby(['observation', 'feature'])
         temp_df = temp_df['probability'].agg(['min', 'max'])
-        sensitivity_idx = np.where((temp_df['min'] <= 0.5) & (temp_df['max'] > 0.5), 1, 0)
-        X_test_sample = X_test_sample[sensitivity_idx == 1]
+        if CLEAR_settings.restrict_to_counterfactual_obs is True:
+            sensitivity_idx = np.where((temp_df['min'] <= 0.5) & (temp_df['max'] > 0.5), 1, 0)
+            X_test_sample = X_test_sample[sensitivity_idx == 1]
         X_test_sample.reset_index(inplace=True, drop=True)
 
     return X_train, X_test_sample, model, numeric_features, category_prefix, feature_list

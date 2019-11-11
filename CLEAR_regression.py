@@ -40,8 +40,6 @@ def Run_Regressions(X_test_sample, explainer, multi_index= None):
             explainer.master_df['prediction']=y[:,1]
     
         else:
-            sensitivity_file = CLEAR_settings.case_study + '_sensitivity_' + str(CLEAR_settings.test_sample) + '.csv'
-            explainer.sensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
             CLEAR_pred_input_func = tf.estimator.inputs.pandas_input_fn(
                 x=explainer.master_df,
                 batch_size=5000,
@@ -93,11 +91,12 @@ def Run_Regressions(X_test_sample, explainer, multi_index= None):
 def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_index):
     explainer.observation_num = observation_num
     explainer.data_row = data_row
-    # set to 6 for no centering when using logistic regression
-    explainer.additional_weighting = 3
-    # temp fix to prevent long Credit Card runs
-    if CLEAR_settings.no_centering == True:
-        explainer.additional_weighting = 6
+    # This is for centering when using logistic regression
+    if CLEAR_settings.regression_type == 'logistic':
+        if CLEAR_settings.centering is True:
+            explainer.additional_weighting = 0
+        else:
+            explainer.additional_weighting = 2
     explainer.local_df = explainer.master_df.copy(deep=True)
     if CLEAR_settings.case_study in ['IRIS', 'Glass']:
         y = explainer.model.predict_proba(data_row)[:, multi_index]
@@ -118,6 +117,8 @@ def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_
     explainer.local_df.loc[0, 'prediction'] = y
     
     if CLEAR_settings.use_sklearn is True:
+        if type(y)==np.ndarray:
+            y=y[0]
         explainer.nn_forecast = y
     else:
         explainer.nn_forecast = y[0]
@@ -127,17 +128,24 @@ def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_
         if explainer.num_counterf > 0:
             adjust_neighbourhood(explainer, explainer.neighbour_df.tail(explainer.num_counterf),
                                  CLEAR_settings.counterfactual_weight)
+    # if no centering == False and regression type - logistic then initially add 19 rows of the observation
+    # that is to be explained to the neighbourhood dataset. This in effect is the same as adding a weighting of 20
+    if (CLEAR_settings.regression_type == 'logistic') and (CLEAR_settings.centering is True):
+        adjust_neighbourhood(explainer, explainer.neighbour_df.iloc[0, :], 19)
+
     perform_regression(explainer)
     if CLEAR_settings.regression_type == 'logistic':
         if CLEAR_settings.case_study not in ['IRIS', 'Glass']:
-            while (explainer.additional_weighting < 6 and
+            while (explainer.additional_weighting < 2 and
                    ((explainer.regression_class != explainer.nn_class) or
                     (abs(explainer.local_prob - explainer.nn_forecast) > 0.01))):
+                explainer.additional_weighting += 1
                 adjust_neighbourhood(explainer, explainer.neighbour_df.iloc[0, :], 10)
                 perform_regression(explainer)
         else:
-            while (explainer.additional_weighting < 6 and
+            while (explainer.additional_weighting < 2 and
                    (abs(explainer.local_prob - explainer.nn_forecast) > 0.01)):
+                explainer.additional_weighting += 1
                 adjust_neighbourhood(explainer, explainer.neighbour_df.iloc[0, :], 10)
                 perform_regression(explainer)
     return explainer
@@ -184,7 +192,6 @@ def Create_boundary_df(explainer,X_test_sample, multi_index):
 
 def adjust_neighbourhood(explainer, target_rows, num_copies):
     # add num_copies more observations
-    explainer.additional_weighting += 1
     temp = pd.DataFrame(columns=explainer.neighbour_df.columns)
     temp = temp.append(target_rows, ignore_index=True)
     temp2 = explainer.neighbour_df.copy(deep=True)
@@ -286,15 +293,15 @@ def add_counterfactual_rows(explainer, boundary_df, multi_index):
     explainer.counterf_rows_df = pd.DataFrame(columns=explainer.neighbour_df.columns)
     if CLEAR_settings.case_study not in ['IRIS', 'Glass']:
         for feature in explainer.neighbour_df.columns[0:-3]:
-            c_df = explainer.sensitivity_df[
-                (explainer.sensitivity_df['observation'] == explainer.observation_num) & (
-                        explainer.sensitivity_df['feature'] == feature)]
+            c_df = explainer.sensit_df[
+                (explainer.sensit_df['observation'] == explainer.observation_num) & (
+                        explainer.sensit_df['feature'] == feature)]
             c_df = c_df['probability'].agg(['min', 'max'])
             if (c_df['min'] <= 0.5) & (c_df['max'] > 0.5):
                 old_value = explainer.neighbour_df.loc[0, feature]
                 boundary = CLEAR_perturbations.Get_Counterfactual(explainer, feature, old_value,
                                                                   explainer.observation_num)
-                # This is necessary for cases where the observation in sensitivity_df nearest to 50th percentile
+                # This is necessary for cases where the observation in sensit_df nearest to 50th percentile
                 # is the last observation and hence is not identified by Get_Counterfactual.
                 if np.isnan(boundary):
                     continue
@@ -368,7 +375,7 @@ def perform_regression(explainer):
         poly_df_org_first_row = poly_df.iloc[0, :] + 0  # plus 0 is to get rid of 'negative zeros' ie python format bug
         org_poly_df = poly_df.copy(deep=True)
         # Now transform so that regression goes through the data point to be explained
-        if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.no_centering == False:
+        if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is True:
             Y = explainer.neighbour_df.loc[:, 'prediction'] - explainer.nn_forecast
             poly_df = poly_df - poly_df.iloc[0, :]
         else:
@@ -398,11 +405,11 @@ def perform_regression(explainer):
         elif CLEAR_settings.case_study == 'Census':
             educ = ['eduDdBachelors', 'eduDdCommunityCollege', 'eduDdDoctorate', 'eduDdHighGrad', 'eduDdMasters',
                     'eduDdProfSchool']
-            non_null_educ = [col for col in educ if not (X.loc[:, col] == 0).all()]
+            #non_null_educ = [col for col in educ if not (X.loc[:, col] == 0).all()]
             non_null_educ = [col for col in educ if (X.loc[:, col].sum() >= 10)]
             selected = ['1', 'age', 'hoursPerWeek']
             selected = selected + non_null_educ
-            # Because of the large number of features in the Census dataset, the following featurees are excluded:
+            # Because of the large number of features in the Census dataset, the following features are excluded:
             # (i) education features that are have low occurrences (ii) features which would NOT change the
             # classification of the observation, if they were independently altered.
             # These rule was adopted to improve the run time for the stepwise regressions.
@@ -414,20 +421,32 @@ def perform_regression(explainer):
                 if x.endswith('_sqrd'):
                     if x not in ['age_sqrd', 'hoursPerWeek']:
                         poly_df.drop(x, axis=1, inplace=True)
+            for x in remaining:
+                if x.startswith('edu') and x[7:10] == 'edu':
+                    poly_df.drop(x, axis=1, inplace=True)
             remaining = poly_df.columns.tolist()
+            for x in selected:
+                try:
+                    remaining.remove(x)
+                except:
+                    continue
+
+
         elif CLEAR_settings.case_study == 'Credit Card':
-            selected = ['1', 'LIMITBAL', 'AGE', 'PAY0', 'PAY6', 'BILLAMT1', 'BILLAMT6', 'PAYAMT1', 'PAYAMT6']
-            # Because of the large number of features in the Credit Card dataset, the only features that are added to
-            # those selected above are features which would change the classification of the observation, if they
+            selected = ['1', 'LIMITBAL', 'AGE', 'PAY0', 'PAY2', 'PAY6', 'BILLAMT1', 'BILLAMT6', 'PAYAMT1', 'PAYAMT6']
+
+
+            # Because of the large number of features in the Credit Card dataset, features are added to
+            # those selected above that would change the classification of the observation, if they
             # were independently altered. This rule was adopted to improve the run time for the stepwise regressions.
-            for x in explainer.feature_list:
-                temp_df = explainer.sensit_df[
-                    (explainer.sensit_df['observation'] == explainer.observation_num) & (
-                            explainer.sensit_df['feature'] == x)]
-                temp_df = temp_df['probability'].agg(['min', 'max'])
-                if (temp_df['min'] <= 0.5) & (temp_df['max'] > 0.5):
-                    if not x in selected:
-                        selected.append(x)
+            #for x in explainer.feature_list:
+            #   temp_df = explainer.sensit_df[
+            #        (explainer.sensit_df['observation'] == explainer.observation_num) & (
+            #                explainer.sensit_df['feature'] == x)]
+            #   temp_df = temp_df['probability'].agg(['min', 'max'])
+            #    if (temp_df['min'] <= 0.5) & (temp_df['max'] > 0.5):
+            #        if not x in selected:
+            #            selected.append(x)
 
             remaining = poly_df.columns.tolist()
             for x in remaining:
@@ -438,8 +457,8 @@ def perform_regression(explainer):
                     poly_df.drop(x, axis=1, inplace=True)
                 if x.startswith('mar') and x[7:10] == 'mar':
                     poly_df.drop(x, axis=1, inplace=True)
-                if x.startswith('AGE_'):
-                    poly_df.drop(x, axis=1, inplace=True)
+              #  if x.startswith('AGE_'):
+              #      poly_df.drop(x, axis=1, inplace=True)
             remaining = poly_df.columns.tolist()
             for x in selected:
                 try:
@@ -452,9 +471,9 @@ def perform_regression(explainer):
         while remaining and current_score == best_new_score and len(selected) < CLEAR_settings.max_predictors:
             scores_with_candidates = []
             for candidate in remaining:
-                if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.no_centering == False:
+                if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is True:
                     formula = "{} ~ {}".format('prediction', ' + '.join(selected + [candidate]) + '-1')
-                elif CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.no_centering == True:
+                elif CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is False:
                     formula = "{} ~ {} ".format('prediction', ' + '.join(selected + [candidate]))
                 else:
                     formula = "{} ~ {}".format('prediction', ' + '.join(selected + [candidate]))
@@ -498,7 +517,7 @@ def perform_regression(explainer):
                 # perfect separation
             else:
                 break
-        if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.no_centering == False:
+        if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is True:
             formula = "{} ~ {}".format('prediction', ' + '.join(selected) + '-1')
             selected.remove('1')
         else:
@@ -547,7 +566,7 @@ def perform_regression(explainer):
                     explainer.nn_class = 0
 
             if CLEAR_settings.regression_type == 'logistic' or \
-                    (CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.no_centering == True):
+                    (CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is False):
                 explainer.intercept = classifier.params[0]
                 explainer.spreadsheet_data = []
                 for i in range(len(selected)):

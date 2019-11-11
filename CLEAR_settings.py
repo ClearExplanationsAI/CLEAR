@@ -13,14 +13,14 @@ def init():
         feature_with_indicator, CLEAR_path, with_indicator_feature, indicator_threshold, \
         neighbourhood_algorithm, perturb_one_feature, only_feature_perturbed, \
         apply_counterfactual_weights, counterfactual_weight, num_iterations, \
-        generate_regression_files, LIME_comparison, interactions_only, no_centering, no_polynomimals, \
+        generate_regression_files, LIME_comparison, interactions_only, centering, no_polynomimals, \
         LIME_sample, LIME_kernel, multi_class, multi_class_labels, multi_class_focus,\
-        use_prev_sensitivity, use_sklearn
+        use_prev_sensitivity, use_sklearn,restrict_to_counterfactual_obs
 
-    case_study = 'PIMA'  # 'Credit Card','PIMA','Census','BreastC','IRIS'
+    case_study = 'Credit Card'  # 'Credit Card','PIMA','Census','BreastC','IRIS'
     max_predictors = 15 # maximum number of dependent variables in stepwise regression
-    first_obs = 5
-    last_obs =5 # number of observations to analyse in CLEAR test dataset Credit 104, PIMA 115,
+    first_obs = 0
+    last_obs = 9 # number of observations to analyse in CLEAR test dataset Credit 104, PIMA 115,
     # BreastC 100, IRIS 50,  Census temporary max of 23,
     num_samples = 50000  # number of observations to generate in Synthetic Dataset. Default 50000
     regression_type = 'logistic'  # 'multiple' 'logistic'
@@ -33,15 +33,15 @@ def init():
     with_indicator_feature = False  # whether to use this indicator variable
     indicator_threshold = 1.5  # threshold for indicator variable # for PAY 0 0=0.1, 1 =0.91
     neighbourhood_algorithm = 'Balanced'  # default should be Balanced . Tested against Unbalanced
-    perturb_one_feature = False  # perturb only one feature eg 'age'
-    only_feature_perturbed = 'age'  # the single feature that is perturbed if
-    apply_counterfactual_weights = False
+    apply_counterfactual_weights = True
     counterfactual_weight = 9  # default to 9-
     generate_regression_files = False
     num_iterations = 1
+    use_prev_sensitivity = False
+    use_sklearn = False  #  currently this switches the AI model to be evaluated to an sklearn SVM
     # Parameters for evaluating the effects of different parts of CLEAR's regression
     interactions_only = False
-    no_centering = False
+    centering = True
     no_polynomimals = False
     # Parameters for comparing CLEAR with LIME
     LIME_comparison = False
@@ -53,9 +53,12 @@ def init():
                           # ordering must correspond to the numeric labels
     # of classes in dataset eg ['setosa','versicolor','virginica']  corresponds to setosa = 0, versicolor = 1....
     # [1, 2, 3, 5, 6, 7]
-    multi_class_focus = 'All'  # eg 'setosa' or 'All'
-    use_prev_sensitivity = False
-    use_sklearn = False  #  currently this switches the AI model to be evaluated to an sklearn SVM
+    multi_class_focus = 'setosa'  # eg 'setosa' or 'All'
+    # parameters only applicable to Census dataset. These allow for there being only: (i) one numeric feature with significant
+    # variance i.e. 'age', and (ii) approx. 15% of observations having counterfactual perturbations with the 'age' feature.
+    perturb_one_feature = False  # perturb only one feature eg 'age'
+    only_feature_perturbed = 'age'  # the single feature that is perturbed
+    restrict_to_counterfactual_obs = False
     # check for inconsistent input data
     check_input_parameters()
 
@@ -81,6 +84,8 @@ def check_input_parameters():
         error_msg = "Max obs number for IRIS is 50"
     elif multi_class is False and case_study in ['IRIS', 'Glass']:
         error_msg = "multi_class is False but case study is a multi-class dataset "
+    elif use_sklearn is True and case_study not in ['IRIS', 'Glass']:
+        error_msg = "use_sklearn option currently only works for IRIS and Glass datasets "
     elif first_obs > last_obs:
         error_msg = "last_obs must be greater or equal to first obs"
     elif last_obs > 100:
@@ -102,7 +107,7 @@ def check_input_parameters():
         error_msg = "neighbourhood algorithm misspecified"
     elif LIME_comparison is True and regression_type != 'multiple':
         error_msg = "LIME comparison only works with multiple regression"
-    elif (isinstance((interactions_only & no_centering & no_polynomimals &
+    elif (isinstance((interactions_only & centering & no_polynomimals &
                       apply_counterfactual_weights & generate_regression_files &
                       LIME_comparison), bool)) is False:
         error_msg = "A boolean variable has been incorrectly specified"
