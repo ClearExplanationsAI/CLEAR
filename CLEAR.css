@@ -15,7 +15,10 @@ h2{color:darkblue;
     margin-top: 20px;
     font-size: 25px;
     font-family: Arial;
-    margin-bottom: 20px}
+    margin-bottom: 20px;
+    margin-left: 0%;
+    margin-right: 0%;
+    width: 100%}
 
 .main-text{align-self: flex-start;
            margin-top: 10px;
@@ -31,16 +34,6 @@ h2{color:darkblue;
            color: #6255f5;
 }
 
-.main-text3{text-align: justify;
-           margin-top: 10px;
-           float: left;
-           font-size: 20px;
-           width: 20%;
-    border-style: solid;
-    border-width: 2px;
-    border-color: #78efea;
-    width:300px;
-}
 
 
 
@@ -68,18 +61,10 @@ h2{color:darkblue;
 
 
 
-.regress-section {
-    display: flex;
-}
-
-
-.reg-div {
-    width: 40%;
-}
 
     
     
-}
+
 
 hr {
     background-color: darkblue;
@@ -92,8 +77,8 @@ hr {
 
 
 img {
-    margin-left: 20pt;
-    margin-top: 10pt;
+    margin-left: 0%;
+    margin-top: 0pt;
     margin-bottom: 0pt;
     margin-right: 10pt;
     height: auto%;
@@ -107,13 +92,6 @@ img {
     font-size: 30px;
     color: #1df24e;  
 }
-
-
-.smallerText{
-    font-size: 12pt;
-    color:red;
-}
-
 
 
 
@@ -137,19 +115,12 @@ button {
 }
 
 
-.regression-counterfactuals {
-    
-    width: 25%;
-        
-}
-
-.actual-counterfactuals {
-    float:left;
-    width: 25%
-}
 
 
 
+
+
+/* clearfix is from uemy course*/
 .clearfix:after {
     content: "";
     display: table;
@@ -158,15 +129,27 @@ button {
 
 .flexi-cont {
     display: flex; 
-    flex-direction: row;  
-    align-items: flex-end;
+    flex-direction: row;
+    flex-wrap: nowrap;
+    align-items:flex-start;
     justify-content: space-between
 }
 
 .counterfactual-table {
-    width: 30%
+    width: 45%
 }
 
+
+#regress-section {
+    position:relative;
+    width:100%;
+}
+
+#b-counterfactuals {
+    width: 45%;
+    float:left
+        
+}
 
 .simplify-formula {
     width: 100%;
@@ -174,14 +157,87 @@ button {
     
 }
 
-.reg-formula {
-    margin-left: 5%;
+#reg-formula {
+    margin-left: 0%;
     margin-right: 5%;
-    align-self: center;
     font-size: 120%;
+    width:45%;
+    padding: 0;
+
 }
 
 .reg-GRAPH {
-    width: 40%;
-    align-items: center
+    width: 35%;
+    align-items: center;
+    margin-left: 0%;
+    margin-right: 0%;
+
+        
+}
+
+#reg-stat {
+    text-align: justify;
+    margin-top:0%;
+    float: left;
+    font-size: 15px;
+    width: 20%;
+    margin-left: 2%;
+    margin-right:0%;    
+    border-style: solid;
+    border-width: 2px;
+    border-color: #78efea;
+
+   
+}
+
+
+#feature-list {
+    display:contents;
+}
+
+
+
+.smallerheading {
+    font-size: 12px;
+    color: darkblue;
+    font-family: Arial;
+}
+
+
+
+section {
+    width: 100%
+}
+
+#c-counterfactuals {
+    float:left;
+    width: 45%
+}
+
+#counterfactuals {
+    width: 100%
+}
+
+#Input_data {
+    margin-top: 0%;
+}
+
+.reg-div {
+    margin-top: 0%;
+}
+
+h3 {
+    color: darkblue;
+    font-size: 20px
+}
+
+.counter-def {
+    color: red;
+    font-size: 20px;
+}
+
+.actual-def {
+    color: black;
+    font-size: 15px;
+    
 }

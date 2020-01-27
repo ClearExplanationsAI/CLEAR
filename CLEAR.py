@@ -31,7 +31,7 @@ for neighbour_seed in range(0, CLEAR_settings.num_iterations):
                 num_class = 1
                 multi_index = CLEAR_settings.multi_class_labels.index(CLEAR_settings.multi_class_focus)
             for c in range(num_class):
-                (results_df, explainer,boundary_df) = CLEAR_regression.Run_Regressions(X_test_sample, explainer, multi_index)
+                (results_df, explainer,single_regress,boundary_df) = CLEAR_regression.Run_Regressions(X_test_sample, explainer, multi_index)
                 (nn_df, miss_df) = CLEAR_perturbations.Calculate_Perturbations(explainer, results_df, boundary_df, multi_index)
                 if (multi_index == 0 and CLEAR_settings.multi_class_focus == 'All') or num_class == 1 :
                     nncomp_df = nn_df.copy(deep=True)
@@ -41,12 +41,12 @@ for neighbour_seed in range(0, CLEAR_settings.num_iterations):
                     missing_log_df=missing_log_df.append(miss_df,sort=False)
                 multi_index +=1
         else:
-            (results_df, explainer,boundary_df) = CLEAR_regression.Run_Regressions(X_test_sample, explainer)
+            (results_df, explainer,single_regress,boundary_df) = CLEAR_regression.Run_Regressions(X_test_sample, explainer)
             (nncomp_df, missing_log_df) = CLEAR_perturbations.Calculate_Perturbations(explainer, results_df, boundary_df)
         CLEAR_perturbations.Summary_stats(nncomp_df, missing_log_df)
 
         if CLEAR_settings.first_obs == CLEAR_settings.last_obs:
-            CLEAR_perturbations.Single_prediction_report(results_df, nncomp_df, explainer, feature_list)
+            CLEAR_perturbations.Single_prediction_report(results_df, nncomp_df, single_regress, explainer)
     else:
         CLEAR_cont.LIME_CLEAR(X_test_sample, explainer, feature_list,numeric_features, model)
 

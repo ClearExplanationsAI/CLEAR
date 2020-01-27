@@ -3,8 +3,8 @@ function convertData(dataList)
     temp2 = temp2.replace(/'/g,'')
     temp2 = temp2.replace(/' '/g,'')
     temp2 = temp2.split(',');
-    temp2[0]= temp2[0].replace('[','')
-     
+    temp2[0]= temp2[0].replace('[','') 
+    temp2[temp2.length-1]= temp2[temp2.length-1].replace('] ','')
     temp2[temp2.length-1]= temp2[temp2.length-1].replace(']','')
     return temp2;}
 
@@ -30,19 +30,23 @@ function strTo2dp(StrNum){
     dp2Str =parseFloat(Math.round(dp2Str * 100) / 100).toFixed(2);
     return dp2Str;}
 
+
 function inFormula(featuresChk,regressTerm) {
   for (var j = 0; j < featuresChk.length; j++) {
-    if (regressTerm.includes(featuresChk[j])) {
-      return true;
-    }
+      var withSpaces = " ".concat(featuresChk[j]," ");
+      var withBeginBracket =featuresChk[j].concat("(");
+      var withEndBracket = featuresChk[j].concat(")");
+      var withMultiply = featuresChk[j].concat("*");
+      var withSquared = featuresChk[j].concat("<sup>2</sup>");
+      var fullList = [withSpaces,withBeginBracket,withEndBracket,withMultiply,withSquared];
+      var test2=fullList.some(el => regressTerm.includes(el));
+      if (test2) {
+            return true;
+       }
   }
   return false;
 }
 
-
-var regressionTable = document.querySelector("#reg-div")
-regressionTable.innerHTML = regressionTable.innerHTML.replace(/_sqrd/g,'<sup>2<\sup>');
-regressionTable.innerHTML = regressionTable.innerHTML.replace(/_/g,'*');
 var simplifiedRegressFormula = document.querySelector('#simplified-equation')
 var inputSpreadData=(document.querySelector('#spreadsheet-data'))
 var inputWeightData=(document.querySelector('#weights'))
@@ -53,7 +57,7 @@ inputSpreadData.style.display = "none"
 inputWeightData.style.display = "none"
 inputIntercept.style.display = "none"
 inputRegressionType.style.display = "none"
-
+debugger;
 var featureList=document.querySelector('#features');
 features= convertData(featureList);
 var myFieldSet = document.getElementById("Select-features"); 
@@ -83,10 +87,10 @@ featureList.style.display = "none"
 hideBox.addEventListener('change', function(){
   if(hideBox.checked){
     myFieldSet.style.display = "block";
-    simplifiedRegressFormula.style.display = "block"   
+    simplifiedRegressFormula.style.display = "block";   
   } else {
     myFieldSet.style.display = "none";
-    simplifiedRegressFormula.style.display = "none" 
+    simplifiedRegressFormula.style.display = "none"; 
       
   }
 });

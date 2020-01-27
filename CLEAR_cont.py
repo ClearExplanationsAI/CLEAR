@@ -3,7 +3,6 @@ from datetime import datetime
 
 import numpy as np
 import pandas as pd
-
 import CLEAR_Process_Dataset,CLEAR_regression,CLEAR_perturbations
 import CLEAR_settings
 
@@ -86,7 +85,8 @@ def LIME_CLEAR(X_test_sample, explainer,feature_list,numeric_features, model):
                 feature_idx = np.asarray([x[0] for x in lime_out.local_exp[c]])
                 features = [lime_out.domain_mapper.exp_feature_names[x] for x in feature_idx]
                 Write_results(i, multi_index, features, data_row, lime_out, coeffs, results_df)
-                boundary_df = CLEAR_regression.Create_boundary_df(explainer, X_test_sample, multi_index)
+                boundary_df = CLEAR_regression.get_multclass_boundaries(explainer, X_test_sample, multi_index)
+                CLEAR_regression.get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index)
                 (nn_df, miss_df) = CLEAR_perturbations.Calculate_Perturbations(explainer, results_df, boundary_df, multi_index)
                 if (i==CLEAR_settings.first_obs and multi_index == 0):
                     nncomp_df = nn_df.copy(deep=True)
@@ -102,6 +102,9 @@ def LIME_CLEAR(X_test_sample, explainer,feature_list,numeric_features, model):
             Write_results(i, 1, features, data_row, lime_out, coeffs, results_df)
             sensitivity_file = CLEAR_settings.case_study + '_sensitivity_' + str(CLEAR_settings.test_sample) + '.csv'
             explainer.sensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
+            multiClassBoundary_df = []
+            multi_index = None
+            CLEAR_regression.get_counterfactuals(explainer, multiClassBoundary_df, X_test_sample, multi_index)
             (nn_df, miss_df) = CLEAR_perturbations.Calculate_Perturbations(explainer, results_df, [])
             if i == CLEAR_settings.first_obs:
                 nncomp_df = nn_df.copy(deep=True)

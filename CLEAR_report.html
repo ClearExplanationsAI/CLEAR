@@ -3,50 +3,103 @@
 
     <head>
         <meta charset="UTF-8">
-        <title> CLIME Report</title>
+        <title> CLEAR Report</title>
         <link rel="stylesheet" type="text/css" href="CLEAR.css">
     </head>
 
     <body>
 
         <div class="first-div">
-        <h1>CLIME Report:&nbsp   <span class="CLIMEdataset">
+        <h1>CLEAR Report:&nbsp;   <span class="CLEARdataset">
             {{dataset_name}}</span></h1>
             <hr class="clear">
-            <span class="main-text2"> Prediction to be explained:&nbsp Observation&nbsp<span class="AI_prob">{{observation_number}}</span> has <span class="AI_prob">{{AI_prediction}}</span> probability of {{explanadum}} </span>    
-        <hr class="clear">
+            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">{{observation_number}}</span> has <span class="AI_prob">{{AI_prediction}}</span> probability of {{explanadum}} </span>    
+            <hr class="clear">
+                    
+        <h2>Regression  Results<br></h2>    
+        </div>  
         
-        </div>      
-        <div>
-            <h2>Counterfactual Results</h2>
-            <p class= "main-text">These are the results of carrying out a grid search on the <strong>target</strong>  AI system. <br><span class="smallerText">("Counterfactual value" = value needed to be at the decision boundary).</span> </p>  
+        
+    
+          
+        <div id= "regress-section" class="flexi-cont"> 
+            <div id= "reg-formula">
+                <p id="regression-formula">{{ regression_formula }}</p>       
+                <form  id="Simplify-regression">
+                    <input type="checkbox" id="simplify" />
+                    <label for="simplify">Simplify display of regression equation</label>	    	
+	            </form>  
+                
+                <form>      
+                    <fieldset id="Select-features">      
+                        <legend>Select Features</legend>      
+                        <button id="Select-button" type="button">Show</button>
+                    </fieldset>      
+                </form>
+                <p class="main-text"  id= "simplified-equation"> </p> <br>
+            </div>   
+        
+            <div class= "reg-GRAPH">
+                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;{{observation_number}}</p>
+                <img src="CLEAR_plot.png" alt="Regression plot">         
+            </div>
+
+            <div id=reg-stat>
+                 <p> Quality of regression statistic:<br><br>
+                    &nbsp; {{regression_score_type}} =
+                {{prediction_score}}</p>
+            </div> 
+        </div> 
+
+             <div class="clearfix"></div>
+        <hr>    
+        <div id="counterfactuals" class="flexi-cont">    
             
-           {{counterfactual_table}}
+            <div id="b-counterfactuals">
+                          <h2><i>b</i>-Counterfactual Results<br></h2>
+                       <p class= "counter-def">"b-counterfactual value" = numeric value needed to be at the decision boundary<br><span class="actual-def">"actual b-counterfactual value" determined by carrying out a grid search on the <strong>target</strong>  AI system.</span> </p>  
+              <p class= "counterfactual-table" > {{counterfactual_table}}</p>
 
-        </div>
-        <br>
-     <hr>    
-        <h2>Regression Results</h2> 
-        <section class= "regress-section">
+
+            </div>
+   
+
+        
+        
+     
+            <div id="c-counterfactuals">
+                <h2><i>c</i>-Counterfactual Results</h2>
+               <p class= "counter-def">"c-counterfactual value" = categorical value that <i>flips</i> the observation's classification<br><span class="actual-def">"actual c-counterfactual value" determined by running <strong>target</strong>  AI system with c-counterfactual. </span> </p>  
+              <p class= "counterfactual-table" > {{cat_counterfactual_table}}</p>
+            </div>
+         </div>
+        <hr>   
+               
+        
+             <div class="clearfix"></div>
+    
+        
         <div class= "reg-div">
-            <p class="main-text"> Key Features.<br><span class="smallerText">(These are the features with largest absolute <em>coefficients</em>).</span>  
-            </p>
-            {{ regression_table }}        
+            <h3>Input Data</h3>
+            <p id="input-data-table">{{ input_data_table }} </p>       
         </div>
-        <div class= "reg-div1">
-            <img src="CLEAR_plot.png" alt="Regression plot">
-            <p></p>
-            {{ regression_formula }}      
+            
+        <div id="feature-list"> 
+           <p id="features"> {{ feature_list }} </p>  
+           <p id="spreadsheet-data"> {{ spreadsheet_data }} </p>  
+           <p id="weights"> {{ weights }} </p>
+           <p id ="intercept">{{intercept}}</p>
+           <p id ="regression-type">{{regression_type}}</p>
         </div>
-        <div>
-           <p class="main-text"> Regression model's estimates of counterfactual values:</p>{{reg_counterfactuals}}
-            <br><br><br>
-            <p class="main-text3"> &nbsp Quality of regression statistic:<br><br>
-                &nbsp {{regression_type}} =
-            {{prediction_score}}</p>
-        </div>    
-       </section>
-    </body>
+        
 
 
+        <script src="CLEARapp.js"></script>
+        
+
+   
+            
+            
+        
+  </body>
 </html>
