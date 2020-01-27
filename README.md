@@ -6,16 +6,15 @@ satisfactory explanation must also be measurable and state how well it can expla
 
 ### Prerequisites
 
-CLEAR is written in Python 3.7 and Tensorflow 1.13. It runs on Windows 10. CLEAR requires the following Python libraries to be installed:
-tkinter, numpy, pandas, sympy, datetime, matplotlib.pyplot, scipy.signal, csv, json, jinja2 and math.
+CLEAR is written in Python 3.7 and Tensorflow 1.13. It runs on Windows 10.The environmemt.yml file specifies CLEAR's dependencies .
 
 ### Installation
 
-Download a copy of the CLEAR repository into a new directory on your PC. The file CLIME_settings.py contains the parameter variabler for CLEAR. Open CLIME_settings and change the value of parameter *CLEAR_path* to the name of the directory you have created for CLEAR e.g. CLEAR_path='D:/CLEAR/'
+Download a copy of the CLEAR repository into a new directory on your PC. The file CLEAR_settings.py contains the parameter variables for CLEAR. Open CLEAR_settings and change the value of parameter *CLEAR_path* to the name of the directory you have created for CLEAR e.g. CLEAR_path='D:/CLEAR/'
 
 ### Running CLEAR
 
-First, CLEAR's parameters for the experiment should be set. These are all in CLIME_settings.py. The admissible values for each parameter are shown in the comment to the right of the parameter eg for *case_study* the admissible values are 'Census','PIMA Indians Diabetes','Credit Card','BreastC'. The pdf file 'Input parameters for CLEAR' documents the input parameters.
+CLEAR's parameters for the experiment should first be set. These are all in CLEAR_settings.py. The admissible values for each parameter are shown in the comment to the right of the parameter eg for *case_study* the admissible values are 'Census','PIMA Indians Diabetes','Credit Card','BreastC'. The pdf file 'Input parameters for CLEAR' documents the input parameters.
 
 CLEAR is then run by running CLEAR.py
 
