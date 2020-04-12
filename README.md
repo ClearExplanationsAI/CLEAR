@@ -19,6 +19,7 @@ CLEAR's parameters for the experiment should first be set. These are all in CLEA
 CLEAR is then run by running CLEAR.py. The user has two options:
 (a) run one of the sample models/datasets provided in CLEAR_sample_models_datasets.py .To do this CLEAR.py should include the command Run_CLEAR_with_sample_model()
 (b) run CLEAR with a user created model and dataset. To do this CLEAR.py needs to have details of the user model and also include a command to run Run_CLEAR(). For example:
+```python
 if __name__ == "__main__":
     X_train = pd.read_pickle('D:/CLEAR/X_train_Adult')
     X_test_sample = pd.read_pickle('D:/CLEAR/X_test_sample_Adult')
@@ -29,6 +30,7 @@ if __name__ == "__main__":
     category_prefix = ['mar', 'occ', 'gen', 'wor', 'edu']
     class_labels = {0: '<=$50K', 1: '> $50K'}
     Run_CLEAR(X_train, X_test_sample, model, model_name, numeric_features, categorical_features, category_prefix, class_labels)
+```
 
 CLEAR will generate a report explaining a single prediction if the parameters (in CLEAR.py) 'first_obs' and 'last_obs' are set to the same value e.g first_obs=7, last_obs=7 will generate a report explaining observation 7 in the test dataset. The report is entitled 'CLEAR_prediction_report.html'
 
