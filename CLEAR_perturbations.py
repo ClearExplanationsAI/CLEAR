@@ -39,18 +39,14 @@ def Calculate_Perturbations(explainer, results_df, multiClassBoundary_df, multi_
     """
     print("\n Calculating b-counterfactuals \n")
     nncomp_df = pd.DataFrame(columns=['observation', 'multi_class', 'feature', 'orgFeatValue', 'orgAiProb',
-                                      'actPerturbedFeatValue',  'AiProbWithActPerturbation', 'estPerturbedFeatValue',
-                                      'errorPerturbation','regProbWithActPerturbation',
-                                      'errorRegProbActPerturb','orgClass'])
+                                      'actPerturbedFeatValue', 'AiProbWithActPerturbation', 'estPerturbedFeatValue',
+                                      'errorPerturbation', 'regProbWithActPerturbation',
+                                      'errorRegProbActPerturb', 'orgClass'])
     bPerturb = CLEARPerturbation()
     bPerturb.nncomp_idx = 1
     missing_log_df = pd.DataFrame(columns=['observation', 'feature', 'reason', 'perturbation'])
-    if CLEAR_settings.LIME_comparison is True:
-        first_obs = results_df.tail(1).index[0]
-        last_obs = first_obs + 1
-    else:
-        first_obs = CLEAR_settings.first_obs
-        last_obs = CLEAR_settings.last_obs + 1
+    first_obs = CLEAR_settings.first_obs
+    last_obs = CLEAR_settings.last_obs + 1
     for i in range(first_obs, last_obs):
         s1 = pd.Series(results_df.local_data[i], explainer.feature_list)
         s2 = pd.DataFrame(columns=explainer.feature_list)
@@ -71,7 +67,7 @@ def Calculate_Perturbations(explainer, results_df, multiClassBoundary_df, multi_
             bPerturb.target_feature = explainer.feature_list[j]
             old_value = s2.iloc[0, j]
             # set target probability for b-perturbation
-            if CLEAR_settings.multi_class is True:
+            if len(explainer.class_labels)>2:
                 bPerturb.target_prob = multiClassBoundary_df.loc[i, bPerturb.target_feature + '_prob']
                 if bPerturb.target_prob == 10000:
                     continue
@@ -114,11 +110,6 @@ def Calculate_Perturbations(explainer, results_df, multiClassBoundary_df, multi_
             if bPerturb.target_feature in explainer.numeric_features:
                 str_eqn, bPerturb.target_feature_weight = generateString(explainer, results_df, i, bPerturb)
                 # Solve the equation and check if there is a solution with a 'feasible' value
-                if CLEAR_settings.LIME_comparison is True:
-                    explainer.feature_min = {}
-                    explainer.feature_max = {}
-                    explainer.feature_min[bPerturb.target_feature] = -3
-                    explainer.feature_max[bPerturb.target_feature] = 3
                 solution = []
                 eqn_roots = solve(str_eqn, x)
                 for k in eqn_roots:
@@ -165,59 +156,45 @@ def Calculate_Perturbations(explainer, results_df, multiClassBoundary_df, multi_
                 estPerturbedFeatValue = np.float64(estPerturbedFeatValue)
                 s2.iloc[0, j] = estPerturbedFeatValue
 
-
-                if CLEAR_settings.multi_class and CLEAR_settings.use_sklearn is True:
-                    predictions = explainer.model.predict_proba(s2.values)
-                    prob_with_estPerturbedFeatValue = predictions[0, multi_index]
-                    perturbedClass = np.argmax(predictions)
-                elif CLEAR_settings.use_sklearn is True:
-                    prob_with_estPerturbedFeatValue = explainer.model.predict_proba(s2.values)[0][1]
-                    perturbedClass = 1
-                else:
-                    CLEAR_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-                        x=s2,
-                        batch_size=1,
-                        num_epochs=1,
-                        shuffle=False)
-                    predictions = explainer.model.predict(CLEAR_pred_input_func)
-                    for p in predictions:
-                        prob_with_estPerturbedFeatValue = p['probabilities'][1]
-                        perturbedClass = p['class_ids']
                 if multi_index is None:
                     temp = 'N\A'
                 else:
-                    temp = CLEAR_settings.multi_class_labels[multi_index]
+                    temp = explainer.class_labels[multi_index]
                 bPerturb.nncomp_idx += 1
                 nncomp_df.loc[bPerturb.nncomp_idx, 'observation'] = i
                 nncomp_df.loc[bPerturb.nncomp_idx, 'multi_class'] = temp
                 nncomp_df.loc[bPerturb.nncomp_idx, 'feature'] = bPerturb.target_feature
                 nncomp_df.loc[bPerturb.nncomp_idx, 'orgFeatValue'] = old_value
                 nncomp_df.loc[bPerturb.nncomp_idx, 'orgAiProb'] = results_df.loc[i, 'nn_forecast']
-                nncomp_df.loc[bPerturb.nncomp_idx,'estPerturbedFeatValue']=estPerturbedFeatValue
-                AiProbWithActPerturbation = explainer.counterf_rows_df.prediction[(explainer.counterf_rows_df['feature'] == \
-                            bPerturb.target_feature) & (explainer.counterf_rows_df['observation'] == i)].iloc[0]
+                nncomp_df.loc[bPerturb.nncomp_idx, 'estPerturbedFeatValue'] = estPerturbedFeatValue
+                AiProbWithActPerturbation = \
+                explainer.counterf_rows_df.prediction[(explainer.counterf_rows_df['feature'] == \
+                                                       bPerturb.target_feature) & (
+                                                                  explainer.counterf_rows_df['observation'] == i)].iloc[
+                    0]
                 nncomp_df.loc[bPerturb.nncomp_idx, 'AiProbWithActPerturbation'] = AiProbWithActPerturbation
                 nncomp_df.loc[bPerturb.nncomp_idx, 'orgClass'] = results_df.loc[i, 'regression_class']
                 s2.iloc[0, j] = old_value
 
                 # estimate estPerturbedFeatValue corresponding to the decision boundary
-                if CLEAR_settings.case_study in ['IRIS', 'Glass']:
+                if len(explainer.class_labels)>2:
                     boundary_val = multiClassBoundary_df.loc[i, bPerturb.target_feature + '_val']
                 else:
-                    boundary_val = CLEAR_regression.numeric_counterfactual(explainer, bPerturb.target_feature, old_value, i)
+                    boundary_val = CLEAR_regression.numeric_counterfactual(explainer, bPerturb.target_feature,
+                                                                           old_value, i)
                 nncomp_df.loc[bPerturb.nncomp_idx, 'actPerturbedFeatValue'] = boundary_val
-                nncomp_df.loc[bPerturb.nncomp_idx, 'errorPerturbation'] = abs(estPerturbedFeatValue-boundary_val)
+                nncomp_df.loc[bPerturb.nncomp_idx, 'errorPerturbation'] = abs(estPerturbedFeatValue - boundary_val)
                 str_eqn = str_eqn.replace('x', str(boundary_val))
                 bPerturb.wTx = simplify(str_eqn)
                 if CLEAR_settings.regression_type == 'multiple':
                     regProbWithActPerturbation = bPerturb.wTx + bPerturb.target_prob
                 else:
                     regProbWithActPerturbation = 1 / (1 + exp(-bPerturb.wTx))
-                nncomp_df.loc[bPerturb.nncomp_idx, 'regProbWithActPerturbation']=regProbWithActPerturbation
+                nncomp_df.loc[bPerturb.nncomp_idx, 'regProbWithActPerturbation'] = regProbWithActPerturbation
                 nncomp_df.loc[bPerturb.nncomp_idx, 'errorRegProbActPerturb'] = \
-                                                            abs(regProbWithActPerturbation-AiProbWithActPerturbation)
+                    abs(regProbWithActPerturbation - AiProbWithActPerturbation)
 
-            elif (bPerturb.target_feature in explainer.cat_features) and (CLEAR_settings.LIME_comparison is False):
+            elif (bPerturb.target_feature in explainer.cat_features):
                 # Create equation string
                 obsData_df = pd.DataFrame(columns=explainer.feature_list)
                 obsData_df.loc[0] = results_df.loc[i, 'local_data']
@@ -251,11 +228,11 @@ def catUpdateNncomp_df(explainer, nncomp_df, bPerturb, multi_index, i, results_d
         (explainer.catSensit_df.feature == k)]
     temp_df = temp_df.copy(deep=True)
     temp_df.reset_index(inplace=True, drop=True)
-    AiProbWithActPerturbation= temp_df.loc[0, 'probability']
+    AiProbWithActPerturbation = temp_df.loc[0, 'probability']
     if multi_index is None:
         temp = 'N\A'
     else:
-        temp = CLEAR_settings.multi_class_labels[multi_index]
+        temp = CLEAR_settings.class_labels[multi_index]
     bPerturb.nncomp_idx += 1
     nncomp_df.loc[bPerturb.nncomp_idx, 'observation'] = i
     nncomp_df.loc[bPerturb.nncomp_idx, 'feature'] = bPerturb.target_feature
@@ -272,13 +249,13 @@ def catUpdateNncomp_df(explainer, nncomp_df, bPerturb, multi_index, i, results_d
         regProbWithActPerturbation = 1 / (1 + exp(-bPerturb.wTx))
     nncomp_df.loc[bPerturb.nncomp_idx, 'regProbWithActPerturbation'] = np.float64(regProbWithActPerturbation)
     nncomp_df.loc[bPerturb.nncomp_idx, 'errorRegProbActPerturb'] = \
-        round(abs(regProbWithActPerturbation - AiProbWithActPerturbation),2)
+        round(abs(regProbWithActPerturbation - AiProbWithActPerturbation), 2)
     return (nncomp_df)
 
 
 def generateString(explainer, results_df, observation, bPerturb):
-    #For numeric target features the str eqn is used to calculate b-perturbations
-    #For categorical target features str_eqn is used to calculate the c-counterfactuals
+    # For numeric target features the str eqn is used to calculate b-perturbations
+    # For categorical target features str_eqn is used to calculate the c-counterfactuals
     if bPerturb.target_feature in explainer.numeric_features:
         raw_data = list(bPerturb.raw_data)
         if CLEAR_settings.regression_type == 'multiple':
@@ -343,16 +320,13 @@ def Summary_stats(nncomp_df, missing_log_df):
         x = temp_df['errorPerturbation']
         x = x[~x.isna()]
         ax = x.plot.hist(grid=True, bins=20, rwidth=0.9)
-        if CLEAR_settings.LIME_comparison == False:
-            plt.title('perturbations = ' + str(temp_df['errorPerturbation'].count()) + '  Freq Counts <= 0.25 sd = ' + str(
+        plt.title(
+            'perturbations = ' + str(temp_df['errorPerturbation'].count()) + '  Freq Counts <= 0.25 sd = ' + str(
                 less_target_sd)
-                      + '\n' + 'regression = ' + CLEAR_settings.regression_type + ', score = ' + CLEAR_settings.score_type
-                      + ', sample = ' + str(CLEAR_settings.num_samples)
-                      + '\n' + 'max_predictors = ' + str(CLEAR_settings.max_predictors)
-                      + ', regression_sample_size = ' + str(CLEAR_settings.regression_sample_size))
-        else:
-            plt.title('perturbations = ' + str(temp_df['errorPerturbation'].count()) + '  Freq Counts <= 0.25 sd = ' + str(
-                less_target_sd))
+            + '\n' + 'regression = ' + CLEAR_settings.regression_type + ', score = ' + CLEAR_settings.score_type
+            + ', sample = ' + str(CLEAR_settings.num_samples)
+            + '\n' + 'max_predictors = ' + str(CLEAR_settings.max_predictors)
+            + ', regression_sample_size = ' + str(CLEAR_settings.regression_sample_size))
         plt.xlabel('Standard Deviations')
         fig = ax.get_figure()
         fig.savefig(CLEAR_settings.CLEAR_path + 'hist' + datetime.now().strftime("%Y%m%d-%H%M") + '.png',
@@ -366,11 +340,8 @@ def Summary_stats(nncomp_df, missing_log_df):
     nncomp_df.to_csv(filename1)
     filename2 = CLEAR_settings.CLEAR_path + 'missing_' + datetime.now().strftime("%Y%m%d-%H%M") + '.csv'
     missing_log_df.to_csv(filename2)
-    output = [CLEAR_settings.case_study, less_target_sd]
-    if CLEAR_settings.LIME_comparison == True:
-        filename3 = 'LIMEbatch.csv'
-    else:
-        filename3 = 'batch.csv'
+    output = [CLEAR_settings.sample_model, less_target_sd]
+    filename3 = 'batch.csv'
     try:
         with open(CLEAR_settings.CLEAR_path + filename3, 'a') as file1:
             writes = csv.writer(file1, delimiter=',', skipinitialspace=True)
@@ -382,31 +353,23 @@ def Summary_stats(nncomp_df, missing_log_df):
 
 
 def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
-    # dataframe to HTML Report
     if nncomp_df.empty:
         print('no data for single prediction report')
         return
-    if CLEAR_settings.case_study == 'Census':
-        explanandum = 'earning > $50k'
-        catDict={'mar':'married', 'occ':'occupation', 'gen':'gender', 'wor':'work', 'edu':'education'}
-    elif CLEAR_settings.case_study == 'PIMA':
-        explanandum = 'diabetes'
-    elif CLEAR_settings.case_study == 'Credit Card':
-        explanandum = 'default'
-    elif CLEAR_settings.case_study == 'IRIS':
-        if CLEAR_settings.multi_class_focus != 'All':
-            explanandum = CLEAR_settings.multi_class_focus
-        else:
-            print('HTML reports is only produced if multi_class_focus = a particular class eg \
-            for the IRIS dataset.. Setosa')
-            return
+    if len(explainer.class_labels)==2:
+        explanandum= explainer.class_labels[1]
     else:
-        explanandum = 'breast cancer'
+        explanandum = CLEAR_settings.multi_class_focus
+
 
     def round_sig(x, sig=2):
         if type(x) == np.ndarray:
             x = x[0]
-        return round(x, sig - int(floor(log10(abs(x)))) - 1)
+        if x == 0:
+            y= 0
+        else:
+            y= round(x, sig - int(floor(log10(abs(x)))) - 1)
+        return y
 
     j = results_df.index.values[0]
     if CLEAR_settings.regression_type == 'multiple':
@@ -421,12 +384,14 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
             results_df.features[j][i] = "(" + results_df.features[j][i] + ")"
         for h in range(results_df.features[j][i].count("Dd")):
             t = results_df.features[j][i].find("Dd")
-            if t==3 and len(results_df.features[j][i])>5:
-                results_df.features[j][i]=results_df.features[j][i][5:]
-            elif len(results_df.features[j][i][t+2:])>2:
-               results_df.features[j][i]=results_df.features[j][i][:t-3]+results_df.features[j][i][t+2:]
+            if t == 3 and len(results_df.features[j][i]) > 6:
+                results_df.features[j][i] = results_df.features[j][i][5:]
+            elif t == 3 and len(results_df.features[j][i]) <= 6:
+                results_df.features[j][i] = results_df.features[j][i][0:3] + results_df.features[j][i][t + 2:]
+            elif len(results_df.features[j][i][t + 2:]) > 2:
+                results_df.features[j][i] = results_df.features[j][i][:t - 3] + results_df.features[j][i][t + 2:]
             else:
-                results_df.features[j][i]=results_df.features[j][i][:t] + results_df.features[j][i][t + 2:]
+                results_df.features[j][i] = results_df.features[j][i][:t] + results_df.features[j][i][t + 2:]
         if results_df.features[j][i] == '1':
             continue
         elif results_df.weights[j][i] < 0:
@@ -442,22 +407,22 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
         regression_score_type = "Adjusted R-Squared"
     else:
         regression_score_type = CLEAR_settings.score_type
-    #get rid of dummy variables equal to zero
+    # get rid of dummy variables equal to zero
     temp2_df = pd.DataFrame(columns=['Feature', 'Input Value'])
     temp = [col for col in single_regress.data_row.columns \
             if not ((single_regress.data_row.loc[0, col] == 0) and (col in explainer.cat_features))]
-    input_data =single_regress.data_row.loc[0, temp]
-    k =0
+    input_data = single_regress.data_row.loc[0, temp]
+    k = 0
     for col in input_data.index:
         if col in explainer.cat_features:
-            temp2_df.loc[k,'Feature']=col.replace("Dd","=")
-            temp2_df.loc[k, 'Input Value'] ="1"
+            temp2_df.loc[k, 'Feature'] = col.replace("Dd", "=")
+            temp2_df.loc[k, 'Input Value'] = "1"
         else:
             temp2_df.loc[k, 'Feature'] = col
             temp2_df.loc[k, 'Input Value'] = str(round(input_data.iloc[k], 2))
-        k+=1
-    inputData_df=temp2_df.copy(deep=True)
-    inputData_df.set_index('Feature',inplace=True)
+        k += 1
+    inputData_df = temp2_df.copy(deep=True)
+    inputData_df.set_index('Feature', inplace=True)
     inputData_df = inputData_df.transpose().copy(deep=True)
     temp_df = nncomp_df.copy(deep=True)
     temp_df = temp_df[~temp_df.errorPerturbation.isna()]
@@ -467,23 +432,25 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
                           'errorPerturbation']].copy()
     counter_df.errorPerturbation = abs(counter_df.errorPerturbation)
     counter_df.rename(columns={"orgFeatValue": "input value", "actPerturbedFeatValue": "actual b-counterfactual value", \
-                            "estPerturbedFeatValue": "regression estimated b-counterfactual value",
-                               "errorPerturbation": "b-counterfactual fidelity error"},inplace=True)
+                               "estPerturbedFeatValue": "regression estimated b-counterfactual value",
+                               "errorPerturbation": "b-counterfactual fidelity error"}, inplace=True)
     #    HTML_df.to_html('CLEAR.HTML')
 
     temp_df = nncomp_df.copy(deep=True)
-    temp_df=temp_df[temp_df.feature.isin(explainer.cat_features)]
+    temp_df = temp_df[temp_df.feature.isin(explainer.cat_features)]
     temp_df.loc[temp_df.feature.str.contains('Dd'), 'feature'] = temp_df.feature.str[:3]
     temp_df.loc[temp_df.orgFeatValue.str.contains('Dd'), 'orgFeatValue'] = temp_df.orgFeatValue.str[5:]
-    temp_df.loc[temp_df.actPerturbedFeatValue.str.contains('Dd'), 'actPerturbedFeatValue'] = temp_df.actPerturbedFeatValue.str[5:]
+    temp_df.loc[
+        temp_df.actPerturbedFeatValue.str.contains('Dd'), 'actPerturbedFeatValue'] = temp_df.actPerturbedFeatValue.str[
+                                                                                     5:]
 
-    c_counter_df = temp_df[['feature', 'orgFeatValue', 'actPerturbedFeatValue','AiProbWithActPerturbation',
-                            'regProbWithActPerturbation','errorRegProbActPerturb']].copy()
+    c_counter_df = temp_df[['feature', 'orgFeatValue', 'actPerturbedFeatValue', 'AiProbWithActPerturbation',
+                            'regProbWithActPerturbation', 'errorRegProbActPerturb']].copy()
     c_counter_df.rename(columns={"orgFeatValue": "input value", "actPerturbedFeatValue": "c-counterfactual value",
-                               "AiProbWithActPerturbation": "actual c-counterfactual value",
-                                "regProbWithActPerturbation": "regression forecast using c-counterfactual",
+                                 "AiProbWithActPerturbation": "actual c-counterfactual value",
+                                 "regProbWithActPerturbation": "regression forecast using c-counterfactual",
                                  "errorRegProbActPerturb": "regression forecast error"},
-                      inplace=True)
+                        inplace=True)
 
     # sorted unique feature list for the 'select features' checkbox
     feature_box = results_df.features[j]
@@ -506,7 +473,7 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
                      "input_data_table": inputData_df.to_html(index=False, classes='mystyle'),
                      "counterfactual_table": counter_df.to_html(index=False, classes='mystyle'),
                      #                     "inaccurate_table": inaccurate_df.to_html(index=False,classes='mystyle'),
-                     "dataset_name": CLEAR_settings.case_study,
+                     "dataset_name": CLEAR_settings.sample_model,
                      "explanadum": explanandum,
                      "observation_number": j,
                      "regression_formula": regression_formula,
@@ -514,7 +481,7 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
                      "regression_score_type": regression_score_type,
                      "regression_type": CLEAR_settings.regression_type,
                      "AI_prediction": report_AI_prediction,
-                     "cat_counterfactual_table":c_counter_df.to_html(index=False, classes='mystyle'),
+                     "cat_counterfactual_table": c_counter_df.to_html(index=False, classes='mystyle'),
                      "feature_list": feature_box,
                      "spreadsheet_data": spreadsheet_data,
                      "weights": weights,
@@ -537,5 +504,4 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
         plt.ylabel('CLEAR Polynomial Regression')
 
     fig.savefig('CLEAR_plot.png', bbox_inches="tight")
-
     return ()

@@ -11,9 +11,9 @@
 
         <div class="first-div">
         <h1>CLEAR Report:&nbsp;   <span class="CLEARdataset">
-            Census</span></h1>
+            Adult</span></h1>
             <hr class="clear">
-            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">1</span> has <span class="AI_prob">0.24</span> probability of earning > $50k </span>    
+            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">11</span> has <span class="AI_prob">0.48</span> probability of belonging to class:&nbsp;  > $50K </span>    
             <hr class="clear">
                     
         <h2>Regression  Results<br></h2>    
@@ -24,7 +24,7 @@
           
         <div id= "regress-section" class="flexi-cont"> 
             <div id= "reg-formula">
-                <p id="regression-formula">prediction = 0.55 + 0.085 age + 0.016 hoursPerWeek + 0.11 ProfSchool - 0.29 CommunityCollege + 0.31 (ExecManagerial*CommunityCollege) - 0.02 hoursPerWeek<sup>2</sup> - 0.021 (hoursPerWeek*ExecManagerial) + 0.037 (age*CommunityCollege) - 0.0095 age<sup>2</sup> + 0.023 (hoursPerWeek*ProfSchool) + 0.012 (hoursPerWeek*CommunityCollege) - 0.0079 (age*ExecManagerial)</p>       
+                <p id="regression-formula">prediction = 0.67 + 0.011 Female + 0.12 ExecManagerial + 0.09 ProfSpecialty + 0.038 Sales - 0.0052 Bachelors + 0.046 Doctorate + 0.0068 Masters + 0.082 ProfSchool - 0.079 BlueCollar - 0.011 Male - 0.13 CommunityCollege + 0.15 age - 0.17 age<sup>2</sup> + 0.086 (age*BlueCollar)</p>       
                 <form  id="Simplify-regression">
                     <input type="checkbox" id="simplify" />
                     <label for="simplify">Simplify display of regression equation</label>	    	
@@ -40,14 +40,14 @@
             </div>   
         
             <div class= "reg-GRAPH">
-                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;1</p>
+                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;11</p>
                 <img src="CLEAR_plot.png" alt="Regression plot">         
             </div>
 
             <div id=reg-stat>
                  <p> Quality of regression statistic:<br><br>
                     &nbsp; Adjusted R-Squared =
-                1.0</p>
+                0.99</p>
             </div> 
         </div> 
 
@@ -71,10 +71,10 @@
   <tbody>
     <tr>
       <td>age</td>
-      <td>-0.28</td>
-      <td>2.2</td>
-      <td>2.2</td>
-      <td>0.018</td>
+      <td>0.17</td>
+      <td>0.34</td>
+      <td>0.29</td>
+      <td>0.046</td>
     </tr>
   </tbody>
 </table></p>
@@ -102,12 +102,76 @@
   </thead>
   <tbody>
     <tr>
+      <td>occ</td>
+      <td>BlueCollar</td>
+      <td>ExecManagerial</td>
+      <td>0.66</td>
+      <td>0.67</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>occ</td>
+      <td>BlueCollar</td>
+      <td>ProfSpecialty</td>
+      <td>0.63</td>
+      <td>0.64</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>occ</td>
+      <td>BlueCollar</td>
+      <td>Sales</td>
+      <td>0.58</td>
+      <td>0.58</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>occ</td>
+      <td>BlueCollar</td>
+      <td>Services</td>
+      <td>0.55</td>
+      <td>0.55</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>gen</td>
+      <td>Male</td>
+      <td>Female</td>
+      <td>0.5</td>
+      <td>0.5</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>edu</td>
+      <td>CommunityCollege</td>
+      <td>Bachelors</td>
+      <td>0.62</td>
+      <td>0.61</td>
+      <td>0.01</td>
+    </tr>
+    <tr>
+      <td>edu</td>
+      <td>CommunityCollege</td>
+      <td>Doctorate</td>
+      <td>0.65</td>
+      <td>0.66</td>
+      <td>0.0</td>
+    </tr>
+    <tr>
+      <td>edu</td>
+      <td>CommunityCollege</td>
+      <td>Masters</td>
+      <td>0.61</td>
+      <td>0.62</td>
+      <td>0.01</td>
+    </tr>
+    <tr>
       <td>edu</td>
       <td>CommunityCollege</td>
       <td>ProfSchool</td>
-      <td>0.65</td>
-      <td>0.65</td>
-      <td>0</td>
+      <td>0.69</td>
+      <td>0.69</td>
+      <td>0.0</td>
     </tr>
   </tbody>
 </table></p>
@@ -137,7 +201,7 @@
   <tbody>
     <tr>
       <th></th>
-      <td>-0.28</td>
+      <td>0.17</td>
       <td>0.72</td>
       <td>1</td>
       <td>1</td>
@@ -150,10 +214,10 @@
         </div>
             
         <div id="feature-list"> 
-           <p id="features"> ['age', 'CommunityCollege', 'ExecManagerial', 'hoursPerWeek', 'ProfSchool'] </p>  
-           <p id="spreadsheet-data"> [-0.2822641761474242, 0.7183483709543018, 0.0, 1.0, 0.0, 0.5160243820526992, 0.0, -0.2822641761474242, 0.07967306513618412, 0.0, 0.7183483709543018, 0.0] </p>  
-           <p id="weights"> [0.08481565643937974, 0.015843475017876574, 0.10622779813211916, -0.28826716020030874, 0.30907756182228, -0.02033502068400779, -0.0205199245552096, 0.037213733132286986, -0.009499991422721826, 0.023002383831464426, 0.012275690970061544, -0.007889384048532677] </p>
-           <p id ="intercept">0.5529812851032753</p>
+           <p id="features"> ['age', 'Bachelors', 'BlueCollar', 'CommunityCollege', 'Doctorate', 'ExecManagerial', 'Female', 'Male', 'Masters', 'ProfSchool', 'ProfSpecialty', 'Sales'] </p>  
+           <p id="spreadsheet-data"> [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.16742537789178416, 0.028031257162206728, 0.16742537789178416] </p>  
+           <p id="weights"> [0.010633230209350586, 0.12188459036475074, 0.0904978469138274, 0.03789472579956054, -0.005248411127729662, 0.0458769837167297, 0.006759651825057389, 0.0822794519846498, -0.07888920219883311, -0.010633230209350586, -0.12966767639870727, 0.15064437081312315, -0.17279801437377024, 0.08556284330291013] </p>
+           <p id ="intercept">0.6650976793785677</p>
            <p id ="regression-type">multiple</p>
         </div>
         

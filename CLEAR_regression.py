@@ -24,7 +24,7 @@ kernel_type = 'Euclidean'  # sets distance measure for the neighbourhood algorit
 
 
 class CLEARSingleRegression(object):
-    # Contains features specific to a particular b-counterfactual
+    # Contains features specific to a particular regression
     def __init__(self,observation_num, data_row):
         self.features = 0
         self.prediction_score = 0
@@ -51,35 +51,20 @@ def Run_Regressions(X_test_sample, explainer, multi_index=None):
          regression are stored in the results_df dataframe
     """
     # label synthetic data
-    if CLEAR_settings.multi_class is True:
+    if len(explainer.class_labels)>2:
         explainer.master_df['prediction'] = explainer.model.predict_proba \
                                                 (explainer.master_df.iloc[:, 0:explainer.num_features].values)[:,
                                             multi_index]
     else:
-        sensitivity_file = CLEAR_settings.case_study + '_sensitivity_' + str(CLEAR_settings.test_sample) + '.csv'
+        sensitivity_file = 'numSensitivity' + '.csv'
         explainer.sensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
-        sensitivity_file = CLEAR_settings.case_study + '_catSensitivity_' + str(CLEAR_settings.test_sample) + '.csv'
+        sensitivity_file = 'catSensitivity' + '.csv'
         if len(explainer.category_prefix) != 0:
             explainer.catSensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
-        if CLEAR_settings.use_sklearn is True:
-            y = explainer.model.predict_proba(explainer.master_df.values)
-            explainer.master_df['prediction'] = y[:, 1]
-
-        else:
-            CLEAR_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-                x=explainer.master_df,
-                batch_size=5000,
-                num_epochs=1,
-                shuffle=False)
-            predictions = explainer.model.predict(CLEAR_pred_input_func)
-
-            y = np.array([])
-            for p in predictions:
-                y = np.append(y, p['probabilities'][1])
-            explainer.master_df['prediction'] = y
+        explainer.master_df['prediction'] = explainer.model.predict(explainer.master_df).flatten()
 
     multiClassBoundary_df = []
-    if CLEAR_settings.multi_class is True:
+    if len(explainer.class_labels)>2:
         multiClassBoundary_df = get_multclass_boundaries(explainer, X_test_sample, multi_index)
     get_counterfactuals(explainer, multiClassBoundary_df, X_test_sample, multi_index)
     results_df = pd.DataFrame(columns=['Reg_Score', 'intercept', 'features', 'weights',
@@ -122,19 +107,14 @@ def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_
     y = forecast_data_row(explainer, data_row, multi_index)
     single_regress.local_df.iloc[0, 0:explainer.num_features] = data_row.iloc[0, 0:explainer.num_features]
     single_regress.local_df.loc[0, 'prediction'] = y
-    if CLEAR_settings.use_sklearn is True:
-        if type(y) == np.ndarray:
-            y = y[0]
-        single_regress.nn_forecast = y
-    else:
-        single_regress.nn_forecast = y[0]
+    single_regress.nn_forecast = y[0]
     create_neighbourhood(explainer, single_regress)
     temp_df=explainer.counterf_rows_df[explainer.counterf_rows_df.observation == single_regress.observation_num].copy(deep=True)
     if (CLEAR_settings.apply_counterfactual_weights) and (temp_df.empty is False):
         temp_df=temp_df.drop(['observation', 'feature'], axis=1)
         single_regress.neighbour_df = single_regress.neighbour_df.append(temp_df, ignore_index=True, sort=False)
-        if explainer.num_counterf > 0:
-            adjust_neighbourhood(single_regress, single_regress.neighbour_df.tail(explainer.num_counterf),
+        if temp_df.shape[0] > 0:
+            adjust_neighbourhood(single_regress, single_regress.neighbour_df.tail(temp_df.shape[0]),
                                  CLEAR_settings.counterfactual_weight)
     # if no centering == False and regression type - logistic then initially add 19 rows of the observation
     # that is to be explained to the neighbourhood dataset. This in effect is the same as adding a weighting of 20
@@ -142,7 +122,7 @@ def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_
         adjust_neighbourhood(single_regress, single_regress.neighbour_df.iloc[0, :], 19)
     perform_regression(explainer, single_regress)
     if CLEAR_settings.regression_type == 'logistic':
-        if CLEAR_settings.case_study not in ['IRIS', 'Glass']:
+        if len(explainer.class_labels)==2:
             while (single_regress.additional_weighting < 2 and
                    ((single_regress.regression_class != single_regress.nn_class) or
                     (abs(single_regress.local_prob - single_regress.nn_forecast) > 0.01))):
@@ -159,26 +139,15 @@ def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_
 
 
 def forecast_data_row(explainer, data_row, multi_index):
-    if CLEAR_settings.case_study in ['IRIS', 'Glass']:
+    if len(explainer.class_labels)>2:
         y = explainer.model.predict_proba(data_row)[:, multi_index]
-    elif CLEAR_settings.use_sklearn is True:
-        y = explainer.model.predict_proba(explainer.data_row.values)[0][1]
     else:
-        CLEAR_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-            x=data_row,
-            batch_size=1,
-            num_epochs=1,
-            shuffle=False)
-        predictions = explainer.model.predict(CLEAR_pred_input_func)
-        y = np.array([])
-        for p in predictions:
-            y = np.append(y, p['probabilities'][1])
+        y = explainer.model.predict(data_row).flatten()
     return (y)
 
 
 def get_multclass_boundaries(explainer, X_test_sample, multi_index):
-    sensitivity_file = CLEAR_settings.case_study + '_sensitivity_m' + str(multi_index) + '_' + \
-                       str(CLEAR_settings.test_sample) + '.csv'
+    sensitivity_file = 'numSensitivity_m' + str(multi_index) + '.csv'
 
     explainer.sensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
     boundary_cols = []
@@ -321,7 +290,6 @@ def neighbourhood_distances(explainer,single_regress):
 
 
 def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
-    # for every_obs
     temp = copy.deepcopy(explainer.feature_list)
     temp.insert(0, 'observation')
     temp.append('prediction')
@@ -331,7 +299,7 @@ def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
         data_row = data_row.append(X_test_sample.iloc[i], ignore_index=True)
         data_row.fillna(0, inplace=True)
         y = forecast_data_row(explainer, data_row, multi_index)
-        if CLEAR_settings.case_study not in ['IRIS', 'Glass']:
+        if len(explainer.class_labels)==2:
             for feature in explainer.numeric_features:
                 temp_df = explainer.sensit_df[
                     (explainer.sensit_df['observation'] == i) & (
@@ -341,11 +309,8 @@ def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
                         (temp_df['max'] > CLEAR_settings.binary_decision_boundary):
                     old_value = X_test_sample.loc[i, feature]
                     boundary = numeric_counterfactual(explainer, feature, old_value, i)
-                    # This is necessary for cases where the observation in sensit_df nearest to 50th percentile
-                    # is the last observation and hence is not identified by Get_Counterfactual.
                     if np.isnan(boundary):
                         continue
-                    # estimate new_value corresponding to 50th percentile. This Gridsearch assumes only a single 50th percentile
                     s1 = X_test_sample.iloc[i].copy(deep=True)
                     s1['observation'] = i
                     s1['feature'] = feature
@@ -353,46 +318,24 @@ def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
                     s1['distances'] = np.nan
                     s1.loc[feature] = boundary
                     explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
-            if y >= CLEAR_settings.binary_decision_boundary:
-                current_class = 1
-            else:
-                current_class = 0
-            #LIME comparison functionality is restricted to numeric features as this was the scope
-            #of the analysis in the ECAI paper
-            if CLEAR_settings.LIME_comparison is False:
-                for feature in explainer.cat_features:
-                    if X_test_sample.loc[i, feature] == 1:
-                        continue
-                    temp_df = explainer.catSensit_df[
-                        (explainer.catSensit_df['observation'] == i) & (
-                                explainer.catSensit_df['feature'] == feature)]
-                    if temp_df.empty:
-                        continue
-                    temp_df = temp_df.copy(deep=True)
-                    if temp_df.newnn_class[temp_df.index[0]] != current_class:
-                        cat_idx = [X_test_sample.columns.get_loc(col) for col in X_test_sample if
-                                   col.startswith(feature[:3])]
-                        s1 = X_test_sample.iloc[i].copy(deep=True)
-                        s1[cat_idx] = 0
-                        s1.loc[feature] = 1
-                        s1['feature'] = feature
-                        s1['target_range'] = 'counterf'
-                        s1['distances'] = np.nan
-                        s1['observation'] = i
-                        explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
+            temp_df = explainer.catSensit_df[
+                (explainer.catSensit_df['observation'] == i) &
+                ((explainer.catSensit_df.probability >= CLEAR_settings.binary_decision_boundary)
+                 != (y[0] >= CLEAR_settings.binary_decision_boundary))].copy(deep=True)
+            for feature in temp_df.feature.to_list():
+                    cat_idx = [X_test_sample.columns.get_loc(col) for col in X_test_sample if
+                               col.startswith(feature[:3])]
+                    s1 = X_test_sample.iloc[i].copy(deep=True)
+                    s1[cat_idx] = 0
+                    s1.loc[feature] = 1
+                    s1['feature'] = feature
+                    s1['target_range'] = 'counterf'
+                    s1['distances'] = np.nan
+                    s1['observation'] = i
+                    explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
 
             if not explainer.counterf_rows_df.empty:
-                explainer.num_counterf = explainer.counterf_rows_df.shape[0]
-                CLEAR_pred_input_func = tf.estimator.inputs.pandas_input_fn(
-                    x=explainer.counterf_rows_df.iloc[:, 1:-4],
-                    batch_size=1,
-                    num_epochs=1,
-                    shuffle=False)
-                predictions = explainer.model.predict(CLEAR_pred_input_func)
-                y = np.array([])
-                for p in predictions:
-                    y = np.append(y, p['probabilities'][1])
-                explainer.counterf_rows_df['prediction'] = y
+                explainer.counterf_rows_df['prediction'] = explainer.model.predict(explainer.counterf_rows_df.iloc[:,1:-4]).flatten()
 
 
         else:
@@ -407,7 +350,6 @@ def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
                     s2['observation'] = i
                     s2.loc[feature] = boundary_df.loc[i, feature + '_val']
                     explainer.counterf_rows_df = explainer.counterf_rows_df.append(s2, ignore_index=True)
-            explainer.num_counterf = explainer.counterf_rows_df.shape[0]
             if not explainer.counterf_rows_df.empty:
                 predictions = explainer.model.predict_proba(explainer.counterf_rows_df.iloc[:, 1:-4].values)
                 explainer.counterf_rows_df['prediction'] = predictions[:, multi_index]
@@ -494,30 +436,31 @@ def perform_regression(explainer, single_regress):
     # identifies, CLEAR adds the dummy variables corresponding to each
     # c-counterfactual.
 
-    # A future enhancement will be to carry out backward's regression.
-
-    if CLEAR_settings.case_study == 'PIMA':
-        selected = ['1', 'BloodP', 'Skin', 'BMI', 'Pregnancy', 'Glucose', 'Insulin', 'DiabF', 'Age']
-    elif CLEAR_settings.case_study == 'IRIS':
-        selected = ['1', 'SepalL', 'SepalW', 'PetalL', 'PetalW']
-    elif CLEAR_settings.case_study == 'Glass':
-        selected = ['1', 'RI', 'Na', 'Mg', 'Al', 'Si', 'K', 'Ca', 'Ba', 'Fe']
-    elif CLEAR_settings.case_study == 'BreastC':
-        selected = ['1']
-    elif explainer.cat_features != []:
-
-
+    # A future enhancement will be to carry out backward regression.
+    selected = ['1']
+    if CLEAR_settings.include_all_numerics is True:
+        selected = selected + explainer.numeric_features
+    if CLEAR_settings.include_features is True:
+        #add included features, having first checked that they are in the dataset
+        selected = addIncludedFeatures(selected, explainer)
+    if explainer.cat_features != []:
         # for each categorical, if c-counterfactual exists include categorical for data_row plus for c-counterfactual
         # Also ensure that dummy trap is avoided
         dummy_trap = True
         counterfactualDummies = getCounterfactualDummies(explainer, single_regress.nn_forecast, \
                                                          single_regress.data_row, single_regress.observation_num, \
                                                          dummy_trap)
-        if CLEAR_settings.case_study == 'Census':
-            selected = ['1', 'age', 'hoursPerWeek']
-        elif CLEAR_settings.case_study == 'Credit Card':
-            selected = ['1', 'LIMITBAL', 'AGE', 'PAY0', 'PAY6', 'BILLAMT1', 'BILLAMT6', 'PAYAMT1', 'PAYAMT6']
-        selected = selected + counterfactualDummies
+        for j in counterfactualDummies:
+            if j not in selected:
+                selected.append(j)
+    #add numeric features with counterfactuals
+    if explainer.numeric_features !=[]:
+        temp_df = explainer.counterf_rows_df[explainer.counterf_rows_df.observation==single_regress.observation_num]
+        temp= temp_df.feature.to_list()
+        for k in temp:
+            if (k in explainer.numeric_features) and (k not in selected):
+                selected.append(k)
+
 
     # Create poly_df excluding any categorical features with low sum
     X = single_regress.neighbour_df.iloc[:, 0:explainer.num_features].copy(deep=True)
@@ -648,7 +591,7 @@ def perform_regression(explainer, single_regress):
         single_regress.coeffs = classifier.params.values
 
         # This needs changing to allow for multi-class
-        if CLEAR_settings.multi_class is False:
+        if len(explainer.class_labels)==2:
             if CLEAR_settings.regression_type == 'logistic':
                 single_regress.accuracy = (classifier.pred_table()[0][0]
                                            + classifier.pred_table()[1][1]) / classifier.pred_table().sum()
@@ -701,7 +644,7 @@ def perform_regression(explainer, single_regress):
     #                input("Regression failed. Press Enter to continue...")
     # local prob is for the target point is in class 0 . CONFIRM!
     single_regress.local_prob = single_regress.untransformed_predictions[0]
-    if CLEAR_settings.multi_class is True:
+    if len(explainer.class_labels)>2:
         single_regress.regression_class = ""  # identification of regression class requires a seperate regression for each multi class
     else:
         if single_regress.local_prob >= CLEAR_settings.binary_decision_boundary:
@@ -720,13 +663,12 @@ def perform_regression(explainer, single_regress):
 
 
 def getCounterfactualDummies(explainer, nn_forecast, data_row, observation_num,dummy_trap):
-    if nn_forecast >= CLEAR_settings.binary_decision_boundary:
-        current_class = 1
-    else:
-        current_class = 0
     temp_df = explainer.catSensit_df[
         (explainer.catSensit_df['observation'] == observation_num) &
-        (explainer.catSensit_df.newnn_class != current_class)].copy(deep=True)
+        ((explainer.catSensit_df.probability>= CLEAR_settings.binary_decision_boundary)
+         != (nn_forecast >= CLEAR_settings.binary_decision_boundary))].copy(deep=True)
+
+
     # get categorical features which counterfactually change observation's class
     w = temp_df.feature.to_list()
     y = [x[:3] for x in w]
@@ -737,10 +679,99 @@ def getCounterfactualDummies(explainer, nn_forecast, data_row, observation_num,d
     # ensure that at least 1 dummy variable is excluded for each categorical feature
     if dummy_trap is True:
         for i in y:
-            x1 = len([u for u in w if u.startswith(i)])  # no dummy variables selected from categorical sensitivity file
+            x1 = len([u for u in w if u.startswith(i)])  # num dummy variables selected from categorical sensitivity file
             x2 = len([u for u in explainer.cat_features if u.startswith(i)])  # dummy variables in data_row
             if x2 == x1 + 1:
                 # drop dummy from w
                 x3 = [u for u in w if u.startswith(i)][-1]
                 w.remove(x3)
     return (w + v)
+
+def addIncludedFeatures(selected, explainer):
+    temp= []
+    for i in CLEAR_settings.include_features_list:
+       if i in explainer.numeric_features:
+           temp.append(i)
+       elif i in explainer.categorical_features:
+           p = explainer.categorical_features.index(i)
+           q = explainer.category_prefix[p]
+           r= [u for u in explainer.cat_features if u.startswith(q)]
+           # drop one feature to avoid dummy trap
+           r= r[:-1]
+           temp = temp + r
+       else:
+           print(i + "  is in input parameter 'include_feature_list' but not in dataset")
+    for j in temp:
+        if j in selected:
+            continue
+        else:
+            selected.append(j)
+    return selected
+
+def Create_Synthetic_Data(X_train, model, model_name,
+                          numeric_features,categorical_features, category_prefix, class_labels, neighbour_seed):
+    feature_list = X_train.columns.tolist()
+    np.random.seed(neighbour_seed)
+    explainer = Create_explainer(X_train, model, numeric_features, category_prefix)
+    explainer.cat_features = []
+    explainer.class_labels = class_labels
+    explainer.model_name = model_name
+    for j in category_prefix:
+        temp = [col for col in X_train if col.startswith(j)]
+        explainer.cat_features.extend(temp)
+    explainer.categorical_features = categorical_features
+    explainer.category_prefix = category_prefix
+
+    return explainer
+
+class Create_explainer(object):
+# generates synthetic data
+    def __init__(self, X_train, model, numeric_features,
+                 category_prefix):
+        self.feature_min = X_train.quantile(.01)
+        self.feature_max = X_train.quantile(.99)
+        self.model = model
+        self.feature_list = X_train.columns.tolist()
+        self.num_features = len(self.feature_list)
+        self.numeric_features = numeric_features
+
+        # creates synthetic data
+        if category_prefix == []:
+            self.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
+                                                          self.num_features)), columns=numeric_features)
+            for i in numeric_features:
+                self.master_df.loc[:, i] = np.random.uniform(self.feature_min[i],
+                                                             self.feature_max[i], CLEAR_settings.num_samples)
+
+
+        else:
+            self.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
+                                                          self.num_features)), columns=X_train.columns.tolist())
+            for prefix in category_prefix:
+                cat_cols = [col for col in X_train if col.startswith(prefix)]
+                t = X_train[cat_cols].sum()
+                st = t.sum()
+                ut = t.cumsum()
+                pt = t / st
+                ct = ut / st
+                if len(cat_cols) > 1:
+                    cnt = 0
+                    for cat in cat_cols:
+                        if cnt == 0:
+                            self.master_df[cat] = np.random.uniform(0, 1, CLEAR_settings.num_samples)
+                            self.master_df[cat] = np.where(self.master_df[cat] <= pt[cat], 1, 0)
+                        elif cnt == len(cat_cols) - 1:
+                            self.master_df[cat] = self.master_df[cat_cols].sum(axis=1)
+                            self.master_df[cat] = np.where(self.master_df[cat] == 0, 1, 0)
+                        else:
+                            self.master_df.loc[self.master_df[cat_cols].sum(axis=1) == 1, cat] = 99
+                            v = CLEAR_settings.num_samples - \
+                                self.master_df[self.master_df[cat_cols].sum(axis=1) > 99].shape[0]
+                            self.master_df.loc[self.master_df[cat_cols].sum(axis=1) == 0, cat] \
+                                = np.random.uniform(0, 1, v)
+                            self.master_df[cat] = np.where(self.master_df[cat] <= (pt[cat] / (1 - ct[cat] + pt[cat])),
+                                                           1, 0)
+                        cnt += 1
+            for i in numeric_features:
+                self.master_df.loc[:, i] = np.random.uniform(self.feature_min[i],
+                                                             self.feature_max[i], CLEAR_settings.num_samples)
