@@ -318,21 +318,22 @@ def get_counterfactuals(explainer, boundary_df, X_test_sample, multi_index):
                     s1['distances'] = np.nan
                     s1.loc[feature] = boundary
                     explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
-            temp_df = explainer.catSensit_df[
+            if explainer.cat_features != []:
+                temp_df = explainer.catSensit_df[
                 (explainer.catSensit_df['observation'] == i) &
                 ((explainer.catSensit_df.probability >= CLEAR_settings.binary_decision_boundary)
                  != (y[0] >= CLEAR_settings.binary_decision_boundary))].copy(deep=True)
-            for feature in temp_df.feature.to_list():
-                    cat_idx = [X_test_sample.columns.get_loc(col) for col in X_test_sample if
-                               col.startswith(feature[:3])]
-                    s1 = X_test_sample.iloc[i].copy(deep=True)
-                    s1[cat_idx] = 0
-                    s1.loc[feature] = 1
-                    s1['feature'] = feature
-                    s1['target_range'] = 'counterf'
-                    s1['distances'] = np.nan
-                    s1['observation'] = i
-                    explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
+                for feature in temp_df.feature.to_list():
+                        cat_idx = [X_test_sample.columns.get_loc(col) for col in X_test_sample if
+                                   col.startswith(feature[:3])]
+                        s1 = X_test_sample.iloc[i].copy(deep=True)
+                        s1[cat_idx] = 0
+                        s1.loc[feature] = 1
+                        s1['feature'] = feature
+                        s1['target_range'] = 'counterf'
+                        s1['distances'] = np.nan
+                        s1['observation'] = i
+                        explainer.counterf_rows_df = explainer.counterf_rows_df.append(s1, ignore_index=True)
 
             if not explainer.counterf_rows_df.empty:
                 explainer.counterf_rows_df['prediction'] = explainer.model.predict(explainer.counterf_rows_df.iloc[:,1:-4]).flatten()
@@ -456,10 +457,11 @@ def perform_regression(explainer, single_regress):
     #add numeric features with counterfactuals
     if explainer.numeric_features !=[]:
         temp_df = explainer.counterf_rows_df[explainer.counterf_rows_df.observation==single_regress.observation_num]
-        temp= temp_df.feature.to_list()
-        for k in temp:
-            if (k in explainer.numeric_features) and (k not in selected):
-                selected.append(k)
+        if temp_df.empty is False:
+            temp= temp_df.feature.to_list()
+            for k in temp:
+                if (k in explainer.numeric_features) and (k not in selected):
+                    selected.append(k)
 
 
     # Create poly_df excluding any categorical features with low sum
