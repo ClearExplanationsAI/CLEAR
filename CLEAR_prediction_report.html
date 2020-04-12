@@ -24,7 +24,7 @@
           
         <div id= "regress-section" class="flexi-cont"> 
             <div id= "reg-formula">
-                <p id="regression-formula">prediction = 0.67 + 0.011 Female + 0.12 ExecManagerial + 0.09 ProfSpecialty + 0.038 Sales - 0.0052 Bachelors + 0.046 Doctorate + 0.0068 Masters + 0.082 ProfSchool - 0.079 BlueCollar - 0.011 Male - 0.13 CommunityCollege + 0.15 age - 0.17 age<sup>2</sup> + 0.086 (age*BlueCollar)</p>       
+                <p id="regression-formula">prediction = 0.81 + 0.15 age + 0.046 hoursPerWeek - 4.2e-18 Female + 0.11 ExecManagerial + 0.06 ProfSpecialty - 0.029 Sales - 0.025 Bachelors + 0.0053 Doctorate + 0.056 Masters + 0.14 ProfSchool - 0.14 BlueCollar - 0.077 Private - 0.18 CommunityCollege - 0.079 age<sup>2</sup></p>       
                 <form  id="Simplify-regression">
                     <input type="checkbox" id="simplify" />
                     <label for="simplify">Simplify display of regression equation</label>	    	
@@ -47,7 +47,7 @@
             <div id=reg-stat>
                  <p> Quality of regression statistic:<br><br>
                     &nbsp; Adjusted R-Squared =
-                0.99</p>
+                1.0</p>
             </div> 
         </div> 
 
@@ -72,9 +72,9 @@
     <tr>
       <td>age</td>
       <td>0.17</td>
-      <td>0.34</td>
-      <td>0.29</td>
-      <td>0.046</td>
+      <td>0.38</td>
+      <td>0.38</td>
+      <td>0.0073</td>
     </tr>
   </tbody>
 </table></p>
@@ -105,55 +105,47 @@
       <td>occ</td>
       <td>BlueCollar</td>
       <td>ExecManagerial</td>
-      <td>0.66</td>
-      <td>0.67</td>
+      <td>0.72</td>
+      <td>0.72</td>
       <td>0.0</td>
     </tr>
     <tr>
       <td>occ</td>
       <td>BlueCollar</td>
       <td>ProfSpecialty</td>
-      <td>0.63</td>
-      <td>0.64</td>
+      <td>0.67</td>
+      <td>0.67</td>
       <td>0.0</td>
     </tr>
     <tr>
       <td>occ</td>
       <td>BlueCollar</td>
       <td>Sales</td>
-      <td>0.58</td>
-      <td>0.58</td>
+      <td>0.59</td>
+      <td>0.59</td>
       <td>0.0</td>
     </tr>
     <tr>
-      <td>occ</td>
-      <td>BlueCollar</td>
-      <td>Services</td>
+      <td>wor</td>
+      <td>Private</td>
+      <td>Gov</td>
       <td>0.55</td>
       <td>0.55</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>gen</td>
-      <td>Male</td>
-      <td>Female</td>
-      <td>0.5</td>
-      <td>0.5</td>
       <td>0.0</td>
     </tr>
     <tr>
       <td>edu</td>
       <td>CommunityCollege</td>
       <td>Bachelors</td>
-      <td>0.62</td>
-      <td>0.61</td>
-      <td>0.01</td>
+      <td>0.63</td>
+      <td>0.63</td>
+      <td>0.0</td>
     </tr>
     <tr>
       <td>edu</td>
       <td>CommunityCollege</td>
       <td>Doctorate</td>
-      <td>0.65</td>
+      <td>0.66</td>
       <td>0.66</td>
       <td>0.0</td>
     </tr>
@@ -161,16 +153,16 @@
       <td>edu</td>
       <td>CommunityCollege</td>
       <td>Masters</td>
-      <td>0.61</td>
-      <td>0.62</td>
+      <td>0.71</td>
+      <td>0.71</td>
       <td>0.01</td>
     </tr>
     <tr>
       <td>edu</td>
       <td>CommunityCollege</td>
       <td>ProfSchool</td>
-      <td>0.69</td>
-      <td>0.69</td>
+      <td>0.79</td>
+      <td>0.79</td>
       <td>0.0</td>
     </tr>
   </tbody>
@@ -214,10 +206,10 @@
         </div>
             
         <div id="feature-list"> 
-           <p id="features"> ['age', 'Bachelors', 'BlueCollar', 'CommunityCollege', 'Doctorate', 'ExecManagerial', 'Female', 'Male', 'Masters', 'ProfSchool', 'ProfSpecialty', 'Sales'] </p>  
-           <p id="spreadsheet-data"> [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.16742537789178416, 0.028031257162206728, 0.16742537789178416] </p>  
-           <p id="weights"> [0.010633230209350586, 0.12188459036475074, 0.0904978469138274, 0.03789472579956054, -0.005248411127729662, 0.0458769837167297, 0.006759651825057389, 0.0822794519846498, -0.07888920219883311, -0.010633230209350586, -0.12966767639870727, 0.15064437081312315, -0.17279801437377024, 0.08556284330291013] </p>
-           <p id ="intercept">0.6650976793785677</p>
+           <p id="features"> ['age', 'Bachelors', 'BlueCollar', 'CommunityCollege', 'Doctorate', 'ExecManagerial', 'Female', 'hoursPerWeek', 'Masters', 'Private', 'ProfSchool', 'ProfSpecialty', 'Sales'] </p>  
+           <p id="spreadsheet-data"> [0.16742537789178416, 0.7183483709542423, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.028031257162206728] </p>  
+           <p id="weights"> [0.15363083413765177, 0.04555299013857194, -4.195299040016592e-18, 0.10653164312648086, 0.0600038018323034, -0.028758022820399187, -0.025169842879862757, 0.005317969404715838, 0.055836710223106586, 0.139767600257383, -0.13777742213838512, -0.07674309611320491, -0.17575243700534274, -0.07887584351342708] </p>
+           <p id ="intercept">0.8108557135753002</p>
            <p id ="regression-type">multiple</p>
         </div>
         
