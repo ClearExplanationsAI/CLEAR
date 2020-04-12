@@ -41,7 +41,7 @@ class Normalised_params(object):
         self.m= X_train.mean()
         self.s = X_train.std()
 
-def Create_Numeric_Multi_Datasets():
+def Create_IRIS_Datasets():
     """ Reads in IRIS Dataset and performs pre-processing
         Creates SVM model and the training and test datasets
     """
