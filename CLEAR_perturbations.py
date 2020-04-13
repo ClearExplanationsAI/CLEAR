@@ -260,12 +260,11 @@ def generateString(explainer, results_df, observation, bPerturb):
         raw_data = list(bPerturb.raw_data)
         if CLEAR_settings.regression_type == 'multiple':
             str_eqn = '-' + str(bPerturb.target_prob) + '+' + str(results_df.loc[observation, 'intercept'])
-        elif CLEAR_settings.multi_class is True:  # ie multi-class logistic regression
+        else:  # ie logistic regression
             # bPerturb.wTx = -ln((1-p)/p)
             temp = -log((1 - bPerturb.target_prob) / bPerturb.target_prob)
             str_eqn = str(-temp) + '+' + str(results_df.loc[observation, 'intercept'])
-        else:  # ie binary-class logistic regression
-            str_eqn = '-' + str(bPerturb.target_prob) + '+' + str(results_df.loc[observation, 'intercept'])
+
     else:
         raw_data = list(bPerturb.adj_raw_data)
         str_eqn = '+' + str(results_df.loc[observation, 'intercept'])
