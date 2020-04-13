@@ -73,14 +73,14 @@ def CLEAR_Main(X_train, X_test_sample, model, model_name, numeric_features, cate
     return()
 
 if __name__ == "__main__":
-    X_train = pd.read_pickle('C:/Users/adamp/Dropbox/Warwick/X_train_Adult')
-    X_test_sample = pd.read_pickle('C:/Users/adamp/Dropbox/Warwick/X_test_sample_Adult')
-    model = tf.keras.models.load_model('C:/Users/adamp/Dropbox/Warwick/CLEAR_Adult.h5')
-    model_name = 'Adult'
-    numeric_features = ['age', 'hoursPerWeek']
-    categorical_features = ['marital_status', 'occupation', 'gender', 'workclass', 'education']
-    category_prefix = ['mar', 'occ', 'gen', 'wor', 'edu']
-    class_labels = {0: '<=$50K', 1: '> $50K'}
-    Run_CLEAR(X_train, X_test_sample, model, model_name, numeric_features, categorical_features, category_prefix, class_labels)
+    # X_train = pd.read_pickle('C:/Users/adamp/Dropbox/Warwick/X_train_Adult')
+    # X_test_sample = pd.read_pickle('C:/Users/adamp/Dropbox/Warwick/X_test_sample_Adult')
+    # model = tf.keras.models.load_model('C:/Users/adamp/Dropbox/Warwick/CLEAR_Adult.h5')
+    # model_name = 'Adult'
+    # numeric_features = ['age', 'hoursPerWeek']
+    # categorical_features = ['marital_status', 'occupation', 'gender', 'workclass', 'education']
+    # category_prefix = ['mar', 'occ', 'gen', 'wor', 'edu']
+    # class_labels = {0: '<=$50K', 1: '> $50K'}
+    # Run_CLEAR(X_train, X_test_sample, model, model_name, numeric_features, categorical_features, category_prefix, class_labels)
 
     Run_CLEAR_with_sample_model()
