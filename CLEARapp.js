@@ -110,11 +110,20 @@ for (var i = 0; i < temp.length; i++) {
 var regressFormula = document.querySelector('#regression-formula');
 regressFormula = regressFormula.innerHTML
 regressFormula=regressFormula.substring(regressFormula.lastIndexOf('=') +1) 
+regressFormula = regressFormula.replace(/e-/g,'eN')  
 regressFormula = regressFormula.replace(/ /,'')   
+if (regressFormula[0]==" "){
+  regressFormula = regressFormula.replace(/ /,'')  
+}
+    
 if (regressFormula[0]=="-"){
   regressFormula=regressFormula.substring(1)   
 }
 regressFormula=regressFormula.split('+').join(',').split('-').join(',').split(','); 
+for(var i=0; i < regressFormula.length; i++) {
+ regressFormula[i] = regressFormula[i].replace(/eN/g, 'e-');
+}
+    
 if  (isNaN(Number(regressFormula[0]))==false){
     regressFormula.shift()
 }
