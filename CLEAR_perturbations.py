@@ -52,15 +52,16 @@ def Calculate_Perturbations(explainer, results_df, multiClassBoundary_df, multi_
         s2 = pd.DataFrame(columns=explainer.feature_list)
         s2 = s2.append(s1, ignore_index=True)
         x = symbols('x')
+        if  results_df.loc[i, 'features'][0] == '1':
+            results_df.loc[i, 'features'].remove('1')
+            results_df.loc[i, 'weights']=results_df.loc[i, 'weights'].tolist()
+            results_df.loc[i, 'weights'].pop(0)
         bPerturb.raw_eqn = results_df.loc[i, 'features'].copy()
-        bPerturb.raw_weights = results_df.loc[i, 'weights'].tolist()
+        bPerturb.raw_weights = results_df.loc[i, 'weights']
         bPerturb.raw_data = results_df.loc[i, 'local_data'].tolist()
         features_processed = 0
         # the next 3 lines ensures that the same code can be used irrespective of whether the regression has
         # been forced through the data point to be explained
-        if bPerturb.raw_eqn == '1':
-            bPerturb.raw_eqn.remove('1')
-            bPerturb.raw_weights.pop(0)
         for j in range(0, len(explainer.feature_list)):
             features_processed += 1
             bPerturb.target_feature_weight = 0
@@ -264,7 +265,6 @@ def generateString(explainer, results_df, observation, bPerturb):
             # bPerturb.wTx = -ln((1-p)/p)
             temp = -log((1 - bPerturb.target_prob) / bPerturb.target_prob)
             str_eqn = str(-temp) + '+' + str(results_df.loc[observation, 'intercept'])
-
     else:
         raw_data = list(bPerturb.adj_raw_data)
         str_eqn = '+' + str(results_df.loc[observation, 'intercept'])
@@ -460,7 +460,6 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
             feature_box.remove(x)
     # results_df.weights needs pre-processing prior to sending to HTML
     weights = results_df.weights.values[0]
-    weights = weights.tolist()
     spreadsheet_data = results_df.spreadsheet_data.values[0]
     if len(weights) == len(spreadsheet_data) + 1:
         weights.pop(0)
@@ -488,6 +487,38 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
                      }
     with open('CLEAR_prediction_report.html', 'w') as fh:
         fh.write(template.render(template_vars))
+
+#calculate feature importance
+    feat_importance_df = pd.DataFrame(columns=feature_box)
+    for y in feature_box:
+        temp = 0
+        cnt= 0
+        for z in results_df.features[j]:
+            if y in z:
+                if y==z:
+                    temp += results_df.weights[j][cnt]* results_df.spreadsheet_data[j][cnt]
+                elif '_sqrd' in z:
+                    temp += results_df.weights[j][cnt] * (results_df.spreadsheet_data[j][cnt])
+                else:
+                    temp += (results_df.weights[j][cnt]* results_df.spreadsheet_data[j][cnt])/2
+            cnt +=1
+        feat_importance_df.loc[0,y]= temp
+    #normalise by largest absolute value
+    temp2=feat_importance_df.abs().max(axis=1)[0]
+    feat_importance_df= feat_importance_df.div(temp2)
+    ax = feat_importance_df.plot.barh(width=1)
+    ax.legend(fontsize = 12)
+    ax.invert_yaxis()
+    ax.margins(y=0)
+    ax.yaxis.set_visible(False)
+    fig = ax.get_figure()
+    fig.set_figheight(5)
+    fig.set_figheight(6.5)
+    fig.tight_layout()
+    fig.savefig('Feature_plot.png', bbox_inches="tight")
+
+
+
 
     fig = plt.figure()
     plt.scatter(single_regress.neighbour_df.loc[:, 'prediction'], single_regress.untransformed_predictions, c='green',

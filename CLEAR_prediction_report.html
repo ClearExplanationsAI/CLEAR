@@ -11,9 +11,9 @@
 
         <div class="first-div">
         <h1>CLEAR Report:&nbsp;   <span class="CLEARdataset">
-            Adult</span></h1>
+            Credit Card</span></h1>
             <hr class="clear">
-            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">11</span> has <span class="AI_prob">0.48</span> probability of belonging to class:&nbsp;  > $50K </span>    
+            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">1</span> has <span class="AI_prob">0.14</span> probability of belonging to class:&nbsp;  default </span>    
             <hr class="clear">
                     
         <h2>Regression  Results<br></h2>    
@@ -24,7 +24,7 @@
           
         <div id= "regress-section" class="flexi-cont"> 
             <div id= "reg-formula">
-                <p id="regression-formula">prediction = 0.81 + 0.15 age + 0.046 hoursPerWeek - 4.2e-18 Female + 0.11 ExecManagerial + 0.06 ProfSpecialty - 0.029 Sales - 0.025 Bachelors + 0.0053 Doctorate + 0.056 Masters + 0.14 ProfSchool - 0.14 BlueCollar - 0.077 Private - 0.18 CommunityCollege - 0.079 age<sup>2</sup></p>       
+                <p id="regression-formula">prediction = 0.057 - 0.023 LIMITBAL + 0.011 AGE + 0.2 PAY0 + 0.051 PAY2 + 0.058 PAY3 - 0.00056 PAY4 + 0.062 PAY5 - 0.0011 PAY6 + 0.023 BILLAMT1 - 0.049 BILLAMT2 + 0.04 BILLAMT3 + 0.034 BILLAMT4 - 0.00011 BILLAMT5 - 0.024 BILLAMT6 - 0.069 PAYAMT1 - 0.061 PAYAMT2 + 0.0036 PAYAMT3 - 0.013 PAYAMT4 - 0.027 PAYAMT5 - 0.027 PAYAMT6</p>       
                 <form  id="Simplify-regression">
                     <input type="checkbox" id="simplify" />
                     <label for="simplify">Simplify display of regression equation</label>	    	
@@ -39,16 +39,24 @@
                 <p class="main-text"  id= "simplified-equation"> </p> <br>
             </div>   
         
-            <div class= "reg-GRAPH">
-                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;11</p>
-                <img src="CLEAR_plot.png" alt="Regression plot">         
+            <div class= "feature-GRAPH">
+                <p id= Feature-title> Feature Importance</p>
+                <img src="Feature_plot.png" alt="Feature Importance plot">         
             </div>
 
-            <div id=reg-stat>
-                 <p> Quality of regression statistic:<br><br>
+ 
+        
+            <div class= "reg-GRAPH">
+                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;1</p>
+                <img src="CLEAR_plot.png" alt="Regression plot">   
+                
+                <p id=reg-stat> Quality of regression statistic:<br><br>
                     &nbsp; Adjusted R-Squared =
-                1.0</p>
-            </div> 
+                0.96</p>
+                
+                
+            </div>
+        
         </div> 
 
              <div class="clearfix"></div>
@@ -70,11 +78,11 @@
   </thead>
   <tbody>
     <tr>
-      <td>age</td>
-      <td>0.17</td>
-      <td>0.38</td>
-      <td>0.38</td>
-      <td>0.0073</td>
+      <td>PAY0</td>
+      <td>0.0099</td>
+      <td>1.3</td>
+      <td>1.9</td>
+      <td>0.55</td>
     </tr>
   </tbody>
 </table></p>
@@ -101,70 +109,6 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>occ</td>
-      <td>BlueCollar</td>
-      <td>ExecManagerial</td>
-      <td>0.72</td>
-      <td>0.72</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>occ</td>
-      <td>BlueCollar</td>
-      <td>ProfSpecialty</td>
-      <td>0.67</td>
-      <td>0.67</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>occ</td>
-      <td>BlueCollar</td>
-      <td>Sales</td>
-      <td>0.59</td>
-      <td>0.59</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>wor</td>
-      <td>Private</td>
-      <td>Gov</td>
-      <td>0.55</td>
-      <td>0.55</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>edu</td>
-      <td>CommunityCollege</td>
-      <td>Bachelors</td>
-      <td>0.63</td>
-      <td>0.63</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>edu</td>
-      <td>CommunityCollege</td>
-      <td>Doctorate</td>
-      <td>0.66</td>
-      <td>0.66</td>
-      <td>0.0</td>
-    </tr>
-    <tr>
-      <td>edu</td>
-      <td>CommunityCollege</td>
-      <td>Masters</td>
-      <td>0.71</td>
-      <td>0.71</td>
-      <td>0.01</td>
-    </tr>
-    <tr>
-      <td>edu</td>
-      <td>CommunityCollege</td>
-      <td>ProfSchool</td>
-      <td>0.79</td>
-      <td>0.79</td>
-      <td>0.0</td>
-    </tr>
   </tbody>
 </table></p>
             </div>
@@ -181,22 +125,54 @@
   <thead>
     <tr style="text-align: left;">
       <th>Feature</th>
-      <th>age</th>
-      <th>hoursPerWeek</th>
-      <th>mar=married</th>
-      <th>occ=BlueCollar</th>
-      <th>gen=Male</th>
-      <th>wor=Private</th>
-      <th>edu=CommunityCollege</th>
+      <th>LIMITBAL</th>
+      <th>AGE</th>
+      <th>PAY0</th>
+      <th>PAY2</th>
+      <th>PAY3</th>
+      <th>PAY4</th>
+      <th>PAY5</th>
+      <th>PAY6</th>
+      <th>BILLAMT1</th>
+      <th>BILLAMT2</th>
+      <th>BILLAMT3</th>
+      <th>BILLAMT4</th>
+      <th>BILLAMT5</th>
+      <th>BILLAMT6</th>
+      <th>PAYAMT1</th>
+      <th>PAYAMT2</th>
+      <th>PAYAMT3</th>
+      <th>PAYAMT4</th>
+      <th>PAYAMT5</th>
+      <th>PAYAMT6</th>
+      <th>mar=2</th>
+      <th>gen=2</th>
+      <th>edu=3</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th></th>
-      <td>0.17</td>
-      <td>0.72</td>
-      <td>1</td>
-      <td>1</td>
+      <td>-0.67</td>
+      <td>-1.15</td>
+      <td>0.01</td>
+      <td>0.11</td>
+      <td>0.14</td>
+      <td>0.19</td>
+      <td>0.24</td>
+      <td>0.25</td>
+      <td>0.4</td>
+      <td>0.45</td>
+      <td>0.5</td>
+      <td>0.56</td>
+      <td>0.32</td>
+      <td>0.36</td>
+      <td>-0.16</td>
+      <td>-0.11</td>
+      <td>0.19</td>
+      <td>-0.17</td>
+      <td>-0.16</td>
+      <td>-0.15</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
@@ -206,10 +182,14 @@
         </div>
             
         <div id="feature-list"> 
-           <p id="features"> ['age', 'Bachelors', 'BlueCollar', 'CommunityCollege', 'Doctorate', 'ExecManagerial', 'Female', 'hoursPerWeek', 'Masters', 'Private', 'ProfSchool', 'ProfSpecialty', 'Sales'] </p>  
-           <p id="spreadsheet-data"> [0.16742537789178416, 0.7183483709542423, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 1.0, 1.0, 1.0, 0.028031257162206728] </p>  
-           <p id="weights"> [0.15363083413765177, 0.04555299013857194, -4.195299040016592e-18, 0.10653164312648086, 0.0600038018323034, -0.028758022820399187, -0.025169842879862757, 0.005317969404715838, 0.055836710223106586, 0.139767600257383, -0.13777742213838512, -0.07674309611320491, -0.17575243700534274, -0.07887584351342708] </p>
-           <p id ="intercept">0.8108557135753002</p>
+           <p id="features"> ['AGE', 'BILLAMT1', 'BILLAMT2', 'BILLAMT3', 'BILLAMT4', 'BILLAMT5', 'BILLAMT6', 'LIMITBAL', 'PAY0', 'PAY2', 'PAY3', 'PAY4', 'PAY5', 'PAY6', 'PAYAMT1', 'PAYAMT2', 'PAYAMT3', 'PAYAMT4', 'PAYAMT5', 'PAYAMT6'] </p>  
+           <p id="spreadsheet-data"> [-0.6744971045702798, -1.1491129951285826, 0.009946299799229551, 0.11344364114730125, 0.13673936844349832, 0.1857735298848588, 0.23757975945163468, 0.2545216715528914, 0.39945381692907905, 0.45303133537919144, 0.4993901618685668, 0.5581790230951383, 0.3214431212946598, 0.35876028249763536, -0.15603430073494914, -0.11381632496990997, 0.1937463268670215, -0.1669275584266908, -0.16450192570671962, -0.15173430569307306] </p>  
+           <p id="weights"> [-2.28721472e-02  1.07842948e-02  1.95037946e-01  5.09132332e-02
+  5.78237430e-02 -5.60441348e-04  6.18884193e-02 -1.10933361e-03
+  2.31479159e-02 -4.88937072e-02  4.01135748e-02  3.36334747e-02
+ -1.10382542e-04 -2.40874969e-02 -6.90407799e-02 -6.08611699e-02
+  3.64847655e-03 -1.33222923e-02 -2.71251916e-02 -2.66116081e-02] </p>
+           <p id ="intercept">0.056872363316215827</p>
            <p id ="regression-type">multiple</p>
         </div>
         

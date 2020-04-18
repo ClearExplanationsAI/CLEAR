@@ -702,7 +702,7 @@ def addIncludedFeatures(selected, explainer):
            r= r[:-1]
            temp = temp + r
        else:
-           print(i + "  is in input parameter 'include_feature_list' but not in dataset")
+           print(i + " in input parameter 'include_feature_list' but not in dataset")
     for j in temp:
         if j in selected:
             continue

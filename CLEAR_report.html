@@ -39,16 +39,24 @@
                 <p class="main-text"  id= "simplified-equation"> </p> <br>
             </div>   
         
-            <div class= "reg-GRAPH">
-                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;{{observation_number}}</p>
-                <img src="CLEAR_plot.png" alt="Regression plot">         
+            <div class= "feature-GRAPH">
+                <p id= Feature-title> Feature Importance</p>
+                <img src="Feature_plot.png" alt="Feature Importance plot">         
             </div>
 
-            <div id=reg-stat>
-                 <p> Quality of regression statistic:<br><br>
+ 
+        
+            <div class= "reg-GRAPH">
+                <p class=main-text> Regression for Neighbourhood of Observation &nbsp;{{observation_number}}</p>
+                <img src="CLEAR_plot.png" alt="Regression plot">   
+                
+                <p id=reg-stat> Quality of regression statistic:<br><br>
                     &nbsp; {{regression_score_type}} =
                 {{prediction_score}}</p>
-            </div> 
+                
+                
+            </div>
+        
         </div> 
 
              <div class="clearfix"></div>

@@ -82,8 +82,8 @@ img {
     margin-bottom: 0pt;
     margin-right: 10pt;
     height: auto%;
-    width: 80%;
-    align-self: flex-start
+    width: 90%;
+    
     
 }
 
@@ -159,29 +159,35 @@ button {
 
 #reg-formula {
     margin-left: 0%;
-    margin-right: 5%;
+    margin-right: 0%;
     font-size: 120%;
-    width:45%;
+    width:40%;
     padding: 0;
 
 }
 
 .reg-GRAPH {
-    width: 35%;
+    width: 30%;
     align-items: center;
     margin-left: 0%;
     margin-right: 0%;
 
         
 }
+.feature-GRAPH {
+    width: 30%;
+    align-items: center;
+    margin-left: 5%;
+    margin-right: 0%;
 
+        
+}
 #reg-stat {
     text-align: justify;
     margin-top:0%;
     float: left;
     font-size: 15px;
-    width: 20%;
-    margin-left: 2%;
+    margin-left: 10%;
     margin-right:0%;    
     border-style: solid;
     border-width: 2px;
@@ -240,4 +246,13 @@ h3 {
     color: black;
     font-size: 15px;
     
+}
+
+img {
+    
+}
+
+#Feature-title {
+    text-align: center;
+    font-size: 20px;
 }
