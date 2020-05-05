@@ -331,11 +331,11 @@ def Summary_stats(nncomp_df, missing_log_df):
         fig.savefig(CLEAR_settings.CLEAR_path + 'hist' + datetime.now().strftime("%Y%m%d-%H%M") + '.png',
                     bbox_inches="tight")
     else:
-        print('no data for plot')
+        print('no numeric feature data for histogram')
         temp_df = nncomp_df.copy(deep=True)
     # x=np.array(nncomp_df['errorPerturbation'])
 
-    filename1 = CLEAR_settings.CLEAR_path + 'wPerturb_' + datetime.now().strftime("%Y%m%d-%H%M") + '.csv'
+    filename1 = CLEAR_settings.CLEAR_path + 'bPerturb_' + datetime.now().strftime("%Y%m%d-%H%M") + '.csv'
     nncomp_df.to_csv(filename1)
     filename2 = CLEAR_settings.CLEAR_path + 'missing_' + datetime.now().strftime("%Y%m%d-%H%M") + '.csv'
     missing_log_df.to_csv(filename2)
@@ -462,8 +462,8 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
     weights = results_df.weights.values[0]
     spreadsheet_data = results_df.spreadsheet_data.values[0]
     if len(weights) == len(spreadsheet_data) + 1:
-        weights.pop(0)
-
+        weights = np.delete(weights, [0])
+    weights = weights.tolist()
     pd.set_option('colheader_justify', 'left', 'precision', 2)
     env = Environment(loader=FileSystemLoader('.'))
     template = env.get_template("CLEAR_report.html")
