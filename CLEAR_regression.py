@@ -462,7 +462,7 @@ def perform_regression(explainer, single_regress):
             for k in temp:
                 if (k in explainer.numeric_features) and (k not in selected):
                     selected.append(k)
-
+            selected = [w.replace(' ', '_') for w in selected]
 
     # Create poly_df excluding any categorical features with low sum
     X = single_regress.neighbour_df.iloc[:, 0:explainer.num_features].copy(deep=True)
