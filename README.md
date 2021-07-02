@@ -1,4 +1,5 @@
-#2 July 2021 Update
+# 2 July 2021 Update
+
 CLEAR has been updated to now include penalized logistic regression, and to also improve its handling of dummy variables. Nevertheless the recommended default for CLEAR remains to use (non-penalized) logistic regression with AIC. 
 A second update will follow shortly in which CLEAR will switch from Tensorflow to PyTorch
 Please let me know via email if there you have any requests for improved functionality.
