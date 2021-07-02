@@ -593,8 +593,7 @@ def perform_regression(explainer, single_regress):
                 if 'Singular matrix' in str(e):
                     pass
             except ConvergenceWarning:
-                print('hello')
-                print("error in step regression")
+                print("perfect separation regression error. Consider using multiple regression")
         if len(scores_with_candidates) > 0:
             if CLEAR_settings.score_type == 'aic':  # For aic lower scores are better
                 scores_with_candidates.sort(reverse=True)
