@@ -20,18 +20,18 @@ os.environ['TF_CPP_MIN_LOG_LEVEL'] = '3'
 def Create_model_dataset():
     np.random.seed(1)
     if CLEAR_settings.sample_model == 'Credit Card':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_Credit_Datasets()
+        (X_train, X_test_sample, model) = Create_Credit_Datasets()
     elif CLEAR_settings.sample_model == 'PIMA':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_PIMA_Datasets()
+        (X_train, X_test_sample, model) = Create_PIMA_Datasets()
     elif CLEAR_settings.sample_model == 'Adult':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_Adult_Datasets()
+        (X_train, X_test_sample, model) = Create_Adult_Datasets()
     elif CLEAR_settings.sample_model == 'BreastC':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_BreastC_Datasets()
+        (X_train, X_test_sample, model) = Create_BreastC_Datasets()
     elif CLEAR_settings.sample_model == 'German Credit':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_German_Datasets()
+        (X_train, X_test_sample, model) = Create_German_Datasets()
     elif CLEAR_settings.sample_model == 'IRIS':
-        (X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels) = Create_IRIS_Datasets()
-    return(X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix,class_labels)
+        (X_train, X_test_sample, model) = Create_IRIS_Datasets()
+    return(X_train, X_test_sample, model)
 
 class Normalised_params(object):
     # Gets min and max needed for generating synthetic data
@@ -53,18 +53,18 @@ def Create_IRIS_Datasets():
     num_features = df.shape[1] - 1
     X = df.iloc[:, 0:num_features]
     y = df['Outcome']
-    numeric_features = X.columns.tolist()
-    categorical_features =[]
-    category_prefix = []
-    class_labels = {0:'setosa', 1:'versicolor',2:'virginica'}
-    model_name= 'IRIS'
+    CLEAR_settings.numeric_features = X.columns.tolist()
+    CLEAR_settings.categorical_features =[]
+    CLEAR_settings.category_prefix = []
+    CLEAR_settings.class_labels = {0:'setosa', 1:'versicolor',2:'virginica'}
+    CLEAR_settings.model_name= 'IRIS'
     X_train, X_remainder, y_train, y_remainder = train_test_split(X, y, test_size=0.4, stratify=y, random_state=1)
     # standardise data using training data
     X_train = X_train.copy(deep=True)
     X_remainder = X_remainder.copy(deep=True)
     normalise = Normalised_params(X_train)
-    X_train.loc[:, numeric_features] = (X_train.loc[:, numeric_features] - normalise.m) / normalise.s
-    X_remainder.loc[:, numeric_features] = (X_remainder.loc[:, numeric_features] - normalise.m) / normalise.s
+    X_train.loc[:, CLEAR_settings.numeric_features] = (X_train.loc[:,CLEAR_settings.numeric_features] - normalise.m) / normalise.s
+    X_remainder.loc[:,CLEAR_settings.numeric_features] = (X_remainder.loc[:,CLEAR_settings.numeric_features] - normalise.m) / normalise.s
     X_test, X_test_sample, y_test, y_test_sample = train_test_split(X_remainder, y_remainder, test_size=.7,
                                                                     stratify=y_remainder, random_state=1)
     X_test = X_test.copy(deep=True)
@@ -76,7 +76,7 @@ def Create_IRIS_Datasets():
 
     print('Accuracy statistics for SVM to be explained \n')
     print(sklearn.metrics.accuracy_score(y_test, model.predict(X_test)))
-    return X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix, class_labels
+    return X_train, X_test_sample, model
 
 
 def Create_PIMA_Datasets():
@@ -92,15 +92,15 @@ def Create_PIMA_Datasets():
     df.fillna(df.mean(), inplace=True)
     num_features = df.shape[1] - 1
     X = df.iloc[:, 0:num_features]
-    numeric_features = X.columns.tolist()
-    categorical_features =[]
-    category_prefix = []
-    class_labels = {0: 'not diabetic', 1: 'diabetic'}
-    model_name = 'PIMA'
+    CLEAR_settings.numeric_features = X.columns.tolist()
+    CLEAR_settings.categorical_features =[]
+    CLEAR_settings.category_prefix = []
+    CLEAR_settings.class_labels = {0: 'not diabetic', 1: 'diabetic'}
+    CLEAR_settings.model_name = 'PIMA'
     y = df['Outcome']
     (X_train, X_test_sample, model) \
-        =Create_Dataset(df, X, y, numeric_features)
-    return X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix, class_labels
+        =Create_Dataset(df, X, y, CLEAR_settings.numeric_features)
+    return X_train, X_test_sample, model
 
 
 
@@ -118,66 +118,66 @@ def Create_BreastC_Datasets():
                        'concave points': 'conPts', 'fractaldimension': 'fractal'}, inplace=True)
     num_features = df.shape[1] - 1
     X = df.iloc[:, 0:num_features]
-    numeric_features = X.columns.tolist()
-    categorical_features = []
-    category_prefix = []
-    class_labels = {0: 'not cancer', 1: 'cancer'}
-    model_name = 'Breast Cancer'
+    CLEAR_settings.numeric_features = X.columns.tolist()
+    CLEAR_settings.categorical_features = []
+    CLEAR_settings.category_prefix = []
+    CLEAR_settings.class_labels = {0: 'not cancer', 1: 'cancer'}
+    CLEAR_settings.model_name = 'Breast Cancer'
     y = df['diagnosis']
     (X_train, X_test_sample, model) \
-        =Create_Dataset(df, X, y, numeric_features)
-    return X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix, class_labels
+        =Create_Dataset(df, X, y,CLEAR_settings.numeric_features)
+    return X_train, X_test_sample, model
 
 
 
 def Create_Credit_Datasets():
     print('Pre-processing \n')
     df = pd.read_csv(CLEAR_settings.CLEAR_path + 'default credit cards.csv')
-    categorical_features=['MARRIAGE', 'SEX', 'EDUCATION']
-    category_prefix = ['mar', 'gen', 'edu']
-    class_labels = {0: 'pay', 1: 'default'}
-    numeric_data = df.copy()
-    numeric_data.drop(['default payment', 'MARRIAGE', 'SEX', 'EDUCATION'], axis=1, inplace=True)
-    numeric_features = numeric_data.columns.tolist()
+    CLEAR_settings.categorical_features=['MARRIAGE', 'SEX', 'EDUCATION']
+    CLEAR_settings.category_prefix = ['mar', 'gen', 'edu']
+    CLEAR_settings.class_labels = {0: 'pay', 1: 'default'}
+    CLEAR_settings.numeric_data = df.copy()
+    CLEAR_settings.numeric_data.drop(['default payment', 'MARRIAGE', 'SEX', 'EDUCATION'], axis=1, inplace=True)
+    CLEAR_settings.numeric_features = CLEAR_settings.numeric_data.columns.tolist()
     model_name = 'Credit Card'
     X = df.copy()
     X.drop(['default payment'], axis=1, inplace=True)
-    X = pd.get_dummies(X, prefix=category_prefix, columns=categorical_features)
+    X = pd.get_dummies(X, prefix=CLEAR_settings.category_prefix, columns=CLEAR_settings.categorical_features)
     X.columns = X.columns.str.replace(r"[_]", "Dd")
     y = df['default payment']
     (X_train, X_test_sample, model) \
-        =Create_Dataset(df, X, y, numeric_features)
-    return X_train, X_test_sample, model ,model_name, numeric_features,categorical_features, category_prefix, class_labels
+        =Create_Dataset(df, X, y, CLEAR_settings.numeric_features)
+    return X_train, X_test_sample, model
 
 def Create_German_Datasets():
     print('Pre-processing \n')
     df = pd.read_csv(CLEAR_settings.CLEAR_path + 'german_credit.csv')
-    numeric_features = ['creditamount', 'duration', 'installmentrate', 'residencesince', 'age',
+    CLEAR_settings.numeric_features = ['creditamount', 'duration', 'installmentrate', 'residencesince', 'age',
                'existingcredits', 'peopleliable']
-    categorical_features= ['existingchecking', 'credithistory', 'purpose', 'savings', 'employmentsince',
+    CLEAR_settings.categorical_features= ['existingchecking', 'credithistory', 'purpose', 'savings', 'employmentsince',
      'statussex', 'otherdebtors', 'property', 'otherinstallmentplans', 'housing', 'job',
      'telephone', 'foreignworker']
-    category_prefix = ['chk', 'crh', 'pur', 'sav', 'emp','sta', 'oth', 'pro', 'oin', 'hou', 'job','tel', 'for']
-    class_labels = {0: 'pay', 1:'default'}
-    model_name = 'German Credit Card'
+    CLEAR_settings.category_prefix = ['chk', 'crh', 'pur', 'sav', 'emp','sta', 'oth', 'pro', 'oin', 'hou', 'job','tel', 'for']
+    CLEAR_settings.class_labels = {0: 'pay', 1:'default'}
+    CLEAR_settings.model_name = 'German Credit Card'
     X = df.copy()
     X.drop(['classification'], axis=1, inplace=True)
-    X = pd.get_dummies(X, prefix=category_prefix,columns=categorical_features)
+    X = pd.get_dummies(X, prefix=CLEAR_settings.category_prefix,columns=CLEAR_settings.categorical_features)
     X.columns = X.columns.str.replace(r"[_]", "Dd")
     y = df['classification']
     (X_train, X_test_sample, model) \
-        =Create_Dataset(df, X, y, numeric_features)
-    return X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix, class_labels
+        =Create_Dataset(df, X, y)
+    return X_train, X_test_sample, model
 
 
 
 def Create_Adult_Datasets():
     print('Pre-processing \n')
-    numeric_features = ['age', 'hoursPerWeek']
-    categorical_features = ['marital_status', 'occupation', 'gender', 'workclass', 'education']
-    category_prefix = ['mar', 'occ', 'gen', 'wor', 'edu']
-    class_labels = {0: '<=$50K', 1: '> $50K'}
-    model_name = 'Adult'
+    CLEAR_settings.numeric_features = ['age', 'hoursPerWeek']
+    CLEAR_settings.categorical_features = ['marital_status', 'occupation', 'gender', 'workclass', 'education']
+    CLEAR_settings.category_prefix = ['mar', 'occ', 'gen', 'wor', 'edu']
+    CLEAR_settings.class_labels = {0: '<=$50K', 1: '> $50K'}
+    CLEAR_settings.model_name = 'Adult'
     df = pd.read_csv(CLEAR_settings.CLEAR_path + 'adult.csv')
     df = df[df["workclass"] != "?"]
     df = df[df["occupation"] != "?"]
@@ -215,13 +215,13 @@ def Create_Adult_Datasets():
     df.rename(columns={'marital-status': 'marital_status'}, inplace=True)
     X = df.copy()
     X.drop(['income'], axis=1, inplace=True)
-    X = pd.get_dummies(X, prefix=category_prefix,
-                       columns= categorical_features)
+    X = pd.get_dummies(X, prefix=CLEAR_settings.category_prefix,
+                       columns= CLEAR_settings.categorical_features)
     X.columns = X.columns.str.replace(r"[_]", "Dd")
     y = df["income"].apply(lambda x: ">50K" in x).astype(int)
     (X_train, X_test_sample, model) \
-        =Create_Dataset(df, X, y, numeric_features)
-    return X_train, X_test_sample, model, model_name, numeric_features,categorical_features, category_prefix, class_labels
+        =Create_Dataset(df, X, y, CLEAR_settings.numeric_features)
+    return X_train, X_test_sample, model
 
 def Create_Dataset(df, X, y, numeric_features):
 #   use_SMOTE is True

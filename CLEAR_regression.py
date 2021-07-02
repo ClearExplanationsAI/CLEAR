@@ -17,13 +17,14 @@ from sklearn.preprocessing import PolynomialFeatures
 from scipy.signal import argrelextrema
 import CLEAR_settings
 from scipy.spatial.distance import cdist
-
+import warnings
+from statsmodels.tools.sm_exceptions import ConvergenceWarning
 """ specify input parameters"""
 
 kernel_type = 'Euclidean'  # sets distance measure for the neighbourhood algorithms
 
 
-class CLEARSingleRegression(object):
+class RegressionResults(object):
     # Contains features specific to a particular regression
     def __init__(self,observation_num, data_row):
         self.features = 0
@@ -43,6 +44,22 @@ class CLEARSingleRegression(object):
         self.local_df = 0
         self.nn_forecast = 0
         self.neighbour_df = 0
+
+class RegressionInputs(object):
+    # Contains features specific to a particular b-perturbation
+    def __init__(self):
+
+        self.cat_features = []
+        self.class_labels = CLEAR_settings.class_labels
+        self.categorical_features = CLEAR_settings.categorical_features
+        self.category_prefix = CLEAR_settings.category_prefix
+        self.numeric_features = CLEAR_settings.numeric_features
+        if len(CLEAR_settings.numeric_features) != 0:
+            sensitivity_file = 'numSensitivity' + '.csv'
+            self.sensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
+        if len(self.category_prefix) != 0:
+            sensitivity_file = 'catSensitivity' + '.csv'
+            self.catSensit_df = pd.read_csv(CLEAR_settings.CLEAR_path + sensitivity_file)
 
 
 def Run_Regressions(X_test_sample, explainer, multi_index=None):
@@ -96,7 +113,7 @@ def Run_Regressions(X_test_sample, explainer, multi_index=None):
 
 
 def explain_data_point(explainer, data_row, observation_num, boundary_df, multi_index):
-    single_regress = CLEARSingleRegression(observation_num,data_row)
+    single_regress = RegressionResults(observation_num,data_row)
     # This is for centering when using logistic regression
     if CLEAR_settings.regression_type == 'logistic':
         if CLEAR_settings.centering is True:
@@ -439,6 +456,7 @@ def perform_regression(explainer, single_regress):
 
     # A future enhancement will be to carry out backward regression.
     selected = ['1']
+    single_regress.perfect_separation = False
     if CLEAR_settings.include_all_numerics is True:
         selected = selected + explainer.numeric_features
     if CLEAR_settings.include_features is True:
@@ -454,6 +472,7 @@ def perform_regression(explainer, single_regress):
         for j in counterfactualDummies:
             if j not in selected:
                 selected.append(j)
+
     #add numeric features with counterfactuals
     if explainer.numeric_features !=[]:
         temp_df = explainer.counterf_rows_df[explainer.counterf_rows_df.observation==single_regress.observation_num]
@@ -472,10 +491,9 @@ def perform_regression(explainer, single_regress):
                 col not in selected)]
     X.drop(temp, axis=1, inplace=True)
     temp = [col for col, val in X.sum().iteritems() \
-            if ((val == X.shape[0]) and (col in explainer.cat_features) and
-                col not in selected)]
+            if ((val == X.shape[0]) and (col in explainer.cat_features))]
     X.drop(temp, axis=1, inplace=True)
-
+    X = avoidDummyTrap(X, explainer, single_regress.data_row)
 
     if CLEAR_settings.no_polynomimals is True:
         poly_df = X.copy(deep=True)
@@ -506,8 +524,8 @@ def perform_regression(explainer, single_regress):
             if x[:3] == x.split("_", 1)[1][:3]:
                 temp.append(x)
     remaining = [x for x in remaining if x not in temp]
-
     # If required, transform Y so that regression goes through the data point to be explained
+    # eg https://stats.stackexchange.com/questions/12484/constrained-linear-regression-through-a-specified-point
     if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is True:
         Y = single_regress.neighbour_df.loc[:, 'prediction'] - single_regress.nn_forecast
         poly_df = poly_df - poly_df.iloc[0, :]
@@ -515,11 +533,21 @@ def perform_regression(explainer, single_regress):
         Y = single_regress.neighbour_df.loc[:, 'prediction'].copy(deep=True)
 
     Y = Y.reset_index(drop=True)
-    Y_cont = Y.copy(deep=True)
 
-    poly_df['prediction'] = pd.to_numeric(Y_cont, errors='coerce')
-    current_score, best_new_score = -1000, -1000
-    while remaining and current_score == best_new_score and len(selected) < CLEAR_settings.max_predictors:
+    poly_df['prediction'] = pd.to_numeric(Y, errors='coerce')
+    if CLEAR_settings.score_type == 'aic':
+        current_score, best_new_score = 100000, 100000
+    else:
+        current_score, best_new_score = -1000, -1000
+    remaining = sorted(remaining, key = lambda x: (len(x), x))
+    warnings.simplefilter('ignore', ConvergenceWarning)
+    # if len(selected ) is greater than the user specified max_predictors, then increase max_predictors so that at least
+    # 1 feature are selected by the regression
+    if len(selected)>=CLEAR_settings.max_predictors:
+        max_predictors = len(selected) + 3
+    else:
+        max_predictors =  CLEAR_settings.max_predictors
+    while remaining and current_score == best_new_score and len(selected) < max_predictors:
         scores_with_candidates = []
         for candidate in remaining:
             if CLEAR_settings.regression_type == 'multiple' and CLEAR_settings.centering is True:
@@ -532,14 +560,22 @@ def perform_regression(explainer, single_regress):
                         score = sm.GLS.from_formula(formula, poly_df).fit(disp=0).aic
 
                     else:
-                        score = sm.Logit.from_formula(formula, poly_df).fit(disp=0).aic
-                    score = score * -1
+                        if CLEAR_settings.logistic_regularise == True:
+                            warnings.simplefilter('error', ConvergenceWarning)
+                            score = sm.Logit.from_formula(formula, poly_df).fit_regularized(method='l1', disp=0).aic
+                            print(str(score))
+                        else:
+                            score = sm.Logit.from_formula(formula, poly_df).fit(disp=0).aic
+
                 elif CLEAR_settings.score_type == 'prsquared':
                     if CLEAR_settings.regression_type == 'multiple':
                         print("Error prsquared is not used with multiple regression")
                         exit
                     else:
-                        score = sm.Logit.from_formula(formula, poly_df).fit(disp=0).prsquared
+                        if CLEAR_settings.logistic_regularise == True:
+                            score = sm.Logit.from_formula(formula, poly_df).fit_regularized(method='l1', disp=0).prsquared
+                        else:
+                            score = sm.Logit.from_formula(formula, poly_df).fit(disp=0).prsquared
                 elif CLEAR_settings.score_type == 'adjR':
                     if CLEAR_settings.regression_type == 'multiple':
                         score=sm.OLS.from_formula(formula, poly_df).fit(disp=0).rsquared_adj
@@ -556,14 +592,36 @@ def perform_regression(explainer, single_regress):
             except np.linalg.LinAlgError as e:
                 if 'Singular matrix' in str(e):
                     pass
-            except:
+            except ConvergenceWarning:
+                print('hello')
                 print("error in step regression")
         if len(scores_with_candidates) > 0:
-            scores_with_candidates.sort()
+            if CLEAR_settings.score_type == 'aic':  # For aic lower scores are better
+                scores_with_candidates.sort(reverse=True)
+            else:
+                scores_with_candidates.sort()
             best_new_score, best_candidate = scores_with_candidates.pop()
-            if current_score < best_new_score:
+            if str(best_new_score) == 'inf':
+                print('CLEAR regression failed - regression score = inf returned, consider using aic')
+                exit()
+            if ((CLEAR_settings.score_type == 'aic') and (current_score *1.002 > best_new_score)) or \
+                ((CLEAR_settings.score_type != 'aic') and (current_score * 1.002 < best_new_score)):
+            # check that the best candidate is not an interaction term in which one of the terms is essentail NOT adding value
+            # i.e. it does not change the forecast compared to just using the other term but has been selected due to small
+            # random effects e.g. in generating images or in the regression dataset.
+                if '_' in best_candidate:
+                    features = best_candidate.split(sep='_')
+                    temp = [item for item in scores_with_candidates if item[1] in features]
+                    if len(temp)>0:
+                        best_feature = max(temp, key=lambda t: t[0])
+                        if (best_new_score - best_feature[0])/best_new_score < 0.005:
+                                   scores_with_candidates.append((best_new_score, best_candidate))
+                                   best_new_score = best_feature[0]
+                                   best_candidate = best_feature[1]
+                                   scores_with_candidates.remove((best_new_score, best_candidate))
                 remaining.remove(best_candidate)
                 selected.append(best_candidate)
+                print(best_candidate + ' added to stepwise regression')
                 current_score = best_new_score
             else:
                 break
@@ -625,27 +683,45 @@ def perform_regression(explainer, single_regress):
                     coeff_feature = classifier.params.index[j]
                     if selected_feature == coeff_feature:
                         single_regress.spreadsheet_data.append(poly_df_org_first_row.loc[selected_feature])
-            single_regress.untransformed_predictions = classifier.predict(org_poly_df)
+            single_regress.after_center_option = classifier.predict(poly_df)
+            if CLEAR_settings.no_intercept == True:
+                single_regress.intercept = 0
+            else:
+                single_regress.intercept = classifier.params[0]
+            if CLEAR_settings.regression_type == 'multiple':    # Outstanding, I need to write an adjustment for McFadden pseudo R2
+                single_regress.prediction_score = Calculate_Adj_R_Squared(single_regress.neighbour_df.loc[:, 'prediction'],
+                    single_regress.after_center_option, classifier, single_regress, intercept=True)
+
         else:
+        # Note on how CLEAR uses centering to force equation through observation
+        #let the observation to be explained be x0,y0
+        # Let Y = y-y0, X = x-x0. The regression equation to be found is then:
+        #   y-y0 = ∝ (x-x0) ie. Y= ∝ X
+        # ∝ is then estimated by a regression with no intercept. This is then transformed back to
+        #   y-y0 = ∝(x-x0)     y =  ∝x - ∝x0 + y0
+        # This equation passes through x0,y0. The new intercept is  ∝x0 + y0 and y needs to be adjusted by y0
+        # Possible Concern: This assumes linearity but the regression includes nonlinear terms eg interaction terms.
+        # Reply: This is not a problem as the interaction terms are all separately included on the input data,
+        # and the regression is linear relative to this expansion.
+
             single_regress.spreadsheet_data = []
-            temp = 0
-            single_regress.intercept = +single_regress.nn_forecast
+            single_regress.intercept = single_regress.nn_forecast
             for i in range(len(selected)):
                 selected_feature = selected[i]
                 for j in range(len(classifier.params)):
                     coeff_feature = classifier.params.index[j]
                     if selected_feature == coeff_feature:
-                        single_regress.intercept -= poly_df_org_first_row.loc[selected_feature] * classifier.params[
-                            j]
-                        temp -= poly_df_org_first_row.loc[selected_feature] * classifier.params[j]
+                        single_regress.intercept -= poly_df_org_first_row.loc[selected_feature] * classifier.params[j]
                         single_regress.spreadsheet_data.append(poly_df_org_first_row.loc[selected_feature])
             adjustment = single_regress.nn_forecast - classifier.predict(poly_df_org_first_row)
-            single_regress.untransformed_predictions = adjustment[0] + classifier.predict(org_poly_df)
+            single_regress.after_center_option= adjustment[0] + classifier.predict(org_poly_df)
+
+            single_regress.prediction_score=Calculate_Adj_R_Squared(single_regress.neighbour_df.loc[:, 'prediction'], single_regress.after_center_option, classifier, single_regress, intercept=True)
+
     except:
         print(formula)
-    #                input("Regression failed. Press Enter to continue...")
-    # local prob is for the target point is in class 0 . CONFIRM!
-    single_regress.local_prob = single_regress.untransformed_predictions[0]
+
+    single_regress.local_prob = single_regress.after_center_option[0]
     if len(explainer.class_labels)>2:
         single_regress.regression_class = ""  # identification of regression class requires a seperate regression for each multi class
     else:
@@ -657,12 +733,7 @@ def perform_regression(explainer, single_regress):
             single_regress.nn_class = 1
         else:
             single_regress.nn_class = 0
-
-
-
-
     return single_regress
-
 
 def getCounterfactualDummies(explainer, nn_forecast, data_row, observation_num,dummy_trap):
     temp_df = explainer.catSensit_df[
@@ -710,70 +781,97 @@ def addIncludedFeatures(selected, explainer):
             selected.append(j)
     return selected
 
-def Create_Synthetic_Data(X_train, model, model_name,
-                          numeric_features,categorical_features, category_prefix, class_labels, neighbour_seed):
-    feature_list = X_train.columns.tolist()
+
+def Create_Synthetic_Data(X_train, model, neighbour_seed):
     np.random.seed(neighbour_seed)
-    explainer = Create_explainer(X_train, model, numeric_features, category_prefix)
-    explainer.cat_features = []
-    explainer.class_labels = class_labels
-    explainer.model_name = model_name
-    for j in category_prefix:
+    explainer = RegressionInputs()
+    explainer.model = model
+    explainer.feature_list = X_train.columns.tolist()
+    explainer.num_features = len(explainer.feature_list)
+    explainer.feature_min = X_train.quantile(.01)
+    explainer.feature_max = X_train.quantile(.99)
+    # creates synthetic data
+    if explainer.category_prefix == []:
+        explainer.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
+                                                      explainer.num_features)), columns=explainer.numeric_features)
+        for i in explainer.numeric_features:
+            explainer.master_df.loc[:, i] = np.random.uniform(explainer.feature_min[i],
+                                                         explainer.feature_max[i], CLEAR_settings.num_samples)
+    else:
+        explainer.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
+                                                      explainer.num_features)), columns=X_train.columns.tolist())
+        for prefix in explainer.category_prefix:
+            cat_cols = [col for col in X_train if col.startswith(prefix)]
+            t = X_train[cat_cols].sum()
+            st = t.sum()
+            ut = t.cumsum()
+            pt = t / st
+            ct = ut / st
+            if len(cat_cols) > 1:
+                cnt = 0
+                for cat in cat_cols:
+                    if cnt == 0:
+                        explainer.master_df[cat] = np.random.uniform(0, 1, CLEAR_settings.num_samples)
+                        explainer.master_df[cat] = np.where(explainer.master_df[cat] <= pt[cat], 1, 0)
+                    elif cnt == len(cat_cols) - 1:
+                        explainer.master_df[cat] = explainer.master_df[cat_cols].sum(axis=1)
+                        explainer.master_df[cat] = np.where(explainer.master_df[cat] == 0, 1, 0)
+                    else:
+                        explainer.master_df.loc[explainer.master_df[cat_cols].sum(axis=1) == 1, cat] = 99
+                        v = CLEAR_settings.num_samples - \
+                            explainer.master_df[explainer.master_df[cat_cols].sum(axis=1) > 99].shape[0]
+                        explainer.master_df.loc[explainer.master_df[cat_cols].sum(axis=1) == 0, cat] \
+                            = np.random.uniform(0, 1, v)
+                        explainer.master_df[cat] = np.where(explainer.master_df[cat] <= (pt[cat] / (1 - ct[cat] + pt[cat])),
+                                                       1, 0)
+                    cnt += 1
+        for i in explainer.numeric_features:
+            explainer.master_df.loc[:, i] = np.random.uniform(explainer.feature_min[i],
+                                                         explainer.feature_max[i], CLEAR_settings.num_samples)
+    for j in explainer.category_prefix:
         temp = [col for col in X_train if col.startswith(j)]
         explainer.cat_features.extend(temp)
-    explainer.categorical_features = categorical_features
-    explainer.category_prefix = category_prefix
-
     return explainer
 
-class Create_explainer(object):
-# generates synthetic data
-    def __init__(self, X_train, model, numeric_features,
-                 category_prefix):
-        self.feature_min = X_train.quantile(.01)
-        self.feature_max = X_train.quantile(.99)
-        self.model = model
-        self.feature_list = X_train.columns.tolist()
-        self.num_features = len(self.feature_list)
-        self.numeric_features = numeric_features
+def Calculate_Adj_R_Squared(Y,predictions,classifier,single_regress,intercept):
+    # This is needed as the data used in the regression is weighted so as to provide soft constraints on the counterfactuals (and for images on the
+    # GAN image) predicxtions. The weighting is achieved by using duplicated rows which are labelled in the target_range column with either
+    # 'GAN' or 'counterf'. This function strips out these duplicated rows and then adjusted_R is calculated. It is this value that then appears
+    # in CLEAR's output. For discussion of calculating R squared without intercept read:
+    # see https://stats.stackexchange.com/questions/26176/removal-of-statistically-significant-intercept-term-increases-r2-in-linear-mo
 
-        # creates synthetic data
-        if category_prefix == []:
-            self.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
-                                                          self.num_features)), columns=numeric_features)
-            for i in numeric_features:
-                self.master_df.loc[:, i] = np.random.uniform(self.feature_min[i],
-                                                             self.feature_max[i], CLEAR_settings.num_samples)
+    #When using multiple regression, CLEAR forces the regression to go through the observation to be explained by (i) tranforming the data and then
+    # (ii) carrying out a regression with no intercept.
+    index_to_regress = single_regress.neighbour_df.index[~single_regress.neighbour_df['target_range'].isin(['GAN','counterf'])]
+    Y_unweighted = Y.iloc[index_to_regress]
+    predictions_unweighted=predictions.iloc[index_to_regress]
+    ssr = sum((Y_unweighted - predictions_unweighted) ** 2)
+    if intercept ==False:
+        sst = sum((Y_unweighted) ** 2)
+        r2 = 1 - (ssr / sst)
+        adjusted_r_squared = 1 - (1 - r2) * (len(Y_unweighted)) / (len(Y_unweighted) - len(classifier.params) - 1)
+    else:
+        sst = sum((Y_unweighted - Y_unweighted.mean()) ** 2)
+        r2 = 1 - (ssr / sst)
+        adjusted_r_squared = 1 - (1 - r2) * (len(Y_unweighted) - 1) / (len(Y_unweighted) - len(classifier.params)-1 - 1)
+    return (adjusted_r_squared)
+
+def  avoidDummyTrap(X, explainer,data_row):
+        for i in explainer.category_prefix:
+           X_features =  X.columns.to_list()
+           w = len([u for u in X_features if u.startswith(i)])
+           #check if a feature has already been dropped
+           r = len([u for u in explainer.cat_features if u.startswith(i)])
+           if w == r and w > 1:
+           # do not drop feature that has value of 1
+           # drop feature with lowest count
+                z = [col for col in data_row if(col in explainer.cat_features) and (data_row.loc[0, col] == 1)]
+                v= [[col, val] for col, val in X.sum().iteritems() if ((col.startswith(i)) and (col not in z))]
+                val, idx = min((val[1], idx) for (idx, val) in enumerate(v))
+                feature_to_drop = v[idx][0]
+                X.drop([feature_to_drop], axis=1, inplace = True)
+        return X
 
 
-        else:
-            self.master_df = pd.DataFrame(np.zeros(shape=(CLEAR_settings.num_samples,
-                                                          self.num_features)), columns=X_train.columns.tolist())
-            for prefix in category_prefix:
-                cat_cols = [col for col in X_train if col.startswith(prefix)]
-                t = X_train[cat_cols].sum()
-                st = t.sum()
-                ut = t.cumsum()
-                pt = t / st
-                ct = ut / st
-                if len(cat_cols) > 1:
-                    cnt = 0
-                    for cat in cat_cols:
-                        if cnt == 0:
-                            self.master_df[cat] = np.random.uniform(0, 1, CLEAR_settings.num_samples)
-                            self.master_df[cat] = np.where(self.master_df[cat] <= pt[cat], 1, 0)
-                        elif cnt == len(cat_cols) - 1:
-                            self.master_df[cat] = self.master_df[cat_cols].sum(axis=1)
-                            self.master_df[cat] = np.where(self.master_df[cat] == 0, 1, 0)
-                        else:
-                            self.master_df.loc[self.master_df[cat_cols].sum(axis=1) == 1, cat] = 99
-                            v = CLEAR_settings.num_samples - \
-                                self.master_df[self.master_df[cat_cols].sum(axis=1) > 99].shape[0]
-                            self.master_df.loc[self.master_df[cat_cols].sum(axis=1) == 0, cat] \
-                                = np.random.uniform(0, 1, v)
-                            self.master_df[cat] = np.where(self.master_df[cat] <= (pt[cat] / (1 - ct[cat] + pt[cat])),
-                                                           1, 0)
-                        cnt += 1
-            for i in numeric_features:
-                self.master_df.loc[:, i] = np.random.uniform(self.feature_min[i],
-                                                             self.feature_max[i], CLEAR_settings.num_samples)
+
+

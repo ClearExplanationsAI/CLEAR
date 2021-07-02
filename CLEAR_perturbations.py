@@ -350,16 +350,13 @@ def Summary_stats(nncomp_df, missing_log_df):
         pass
     return
 
-
 def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
     if nncomp_df.empty:
-        print('no data for single prediction report')
-        return
+        print('no counterfactuals found')
     if len(explainer.class_labels)==2:
         explanandum= explainer.class_labels[1]
     else:
         explanandum = CLEAR_settings.multi_class_focus
-
 
     def round_sig(x, sig=2):
         if type(x) == np.ndarray:
@@ -463,7 +460,7 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
     spreadsheet_data = results_df.spreadsheet_data.values[0]
     if len(weights) == len(spreadsheet_data) + 1:
         weights = np.delete(weights, [0])
-    weights = weights.tolist()
+    # weights = weights.tolist()
     pd.set_option('colheader_justify', 'left', 'precision', 2)
     env = Environment(loader=FileSystemLoader('.'))
     template = env.get_template("CLEAR_report.html")
@@ -521,7 +518,7 @@ def Single_prediction_report(results_df, nncomp_df, single_regress, explainer):
 
 
     fig = plt.figure()
-    plt.scatter(single_regress.neighbour_df.loc[:, 'prediction'], single_regress.untransformed_predictions, c='green',
+    plt.scatter(single_regress.neighbour_df.loc[:, 'prediction'], single_regress.after_center_option, c='green',
                 s=10)
     plt.plot(np.linspace(0, 1, 100), np.linspace(0, 1, 100), c="red", linestyle='-')
 

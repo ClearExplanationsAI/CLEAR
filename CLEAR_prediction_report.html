@@ -11,9 +11,9 @@
 
         <div class="first-div">
         <h1>CLEAR Report:&nbsp;   <span class="CLEARdataset">
-            Credit Card</span></h1>
+            Adult</span></h1>
             <hr class="clear">
-            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">1</span> has <span class="AI_prob">0.14</span> probability of belonging to class:&nbsp;  default </span>    
+            <span class="main-text2"> Prediction to be explained:&nbsp; Observation&nbsp;<span class="AI_prob">1</span> has <span class="AI_prob">0.013</span> probability of belonging to class:&nbsp;  > $50K </span>    
             <hr class="clear">
                     
         <h2>Regression  Results<br></h2>    
@@ -24,7 +24,7 @@
           
         <div id= "regress-section" class="flexi-cont"> 
             <div id= "reg-formula">
-                <p id="regression-formula">prediction = 0.057 - 0.023 LIMITBAL + 0.011 AGE + 0.2 PAY0 + 0.051 PAY2 + 0.058 PAY3 - 0.00056 PAY4 + 0.062 PAY5 - 0.0011 PAY6 + 0.023 BILLAMT1 - 0.049 BILLAMT2 + 0.04 BILLAMT3 + 0.034 BILLAMT4 - 0.00011 BILLAMT5 - 0.024 BILLAMT6 - 0.069 PAYAMT1 - 0.061 PAYAMT2 + 0.0036 PAYAMT3 - 0.013 PAYAMT4 - 0.027 PAYAMT5 - 0.027 PAYAMT6</p>       
+                <p id="regression-formula"><font size = "4.5">prediction =  [ 1 + e<sup><b>-w<sup>T</sup>x</sup></b> ]<sup> -1</sup></font size><br><br><font size = "4.5"><b><i>w</i></b><sup>T</sup><b><i>x</font size></i></b> =  0.94 - 3.9 notmarried - 0.47 BlueCollar - 0.59 CommunityCollege</p>       
                 <form  id="Simplify-regression">
                     <input type="checkbox" id="simplify" />
                     <label for="simplify">Simplify display of regression equation</label>	    	
@@ -51,8 +51,8 @@
                 <img src="CLEAR_plot.png" alt="Regression plot">   
                 
                 <p id=reg-stat> Quality of regression statistic:<br><br>
-                    &nbsp; Adjusted R-Squared =
-                0.96</p>
+                    &nbsp; aic =
+                160.0</p>
                 
                 
             </div>
@@ -77,13 +77,6 @@
     </tr>
   </thead>
   <tbody>
-    <tr>
-      <td>PAY0</td>
-      <td>0.0099</td>
-      <td>1.3</td>
-      <td>1.9</td>
-      <td>0.55</td>
-    </tr>
   </tbody>
 </table></p>
 
@@ -125,54 +118,22 @@
   <thead>
     <tr style="text-align: left;">
       <th>Feature</th>
-      <th>LIMITBAL</th>
-      <th>AGE</th>
-      <th>PAY0</th>
-      <th>PAY2</th>
-      <th>PAY3</th>
-      <th>PAY4</th>
-      <th>PAY5</th>
-      <th>PAY6</th>
-      <th>BILLAMT1</th>
-      <th>BILLAMT2</th>
-      <th>BILLAMT3</th>
-      <th>BILLAMT4</th>
-      <th>BILLAMT5</th>
-      <th>BILLAMT6</th>
-      <th>PAYAMT1</th>
-      <th>PAYAMT2</th>
-      <th>PAYAMT3</th>
-      <th>PAYAMT4</th>
-      <th>PAYAMT5</th>
-      <th>PAYAMT6</th>
-      <th>mar=2</th>
-      <th>gen=2</th>
-      <th>edu=3</th>
+      <th>age</th>
+      <th>hoursPerWeek</th>
+      <th>mar=notmarried</th>
+      <th>occ=BlueCollar</th>
+      <th>gen=Female</th>
+      <th>wor=Private</th>
+      <th>edu=CommunityCollege</th>
     </tr>
   </thead>
   <tbody>
     <tr>
       <th></th>
-      <td>-0.67</td>
-      <td>-1.15</td>
-      <td>0.01</td>
-      <td>0.11</td>
-      <td>0.14</td>
-      <td>0.19</td>
-      <td>0.24</td>
-      <td>0.25</td>
-      <td>0.4</td>
-      <td>0.45</td>
-      <td>0.5</td>
-      <td>0.56</td>
-      <td>0.32</td>
-      <td>0.36</td>
-      <td>-0.16</td>
-      <td>-0.11</td>
-      <td>0.19</td>
-      <td>-0.17</td>
-      <td>-0.16</td>
-      <td>-0.15</td>
+      <td>-1.33</td>
+      <td>-2.08</td>
+      <td>1</td>
+      <td>1</td>
       <td>1</td>
       <td>1</td>
       <td>1</td>
@@ -182,15 +143,11 @@
         </div>
             
         <div id="feature-list"> 
-           <p id="features"> ['AGE', 'BILLAMT1', 'BILLAMT2', 'BILLAMT3', 'BILLAMT4', 'BILLAMT5', 'BILLAMT6', 'LIMITBAL', 'PAY0', 'PAY2', 'PAY3', 'PAY4', 'PAY5', 'PAY6', 'PAYAMT1', 'PAYAMT2', 'PAYAMT3', 'PAYAMT4', 'PAYAMT5', 'PAYAMT6'] </p>  
-           <p id="spreadsheet-data"> [-0.6744971045702798, -1.1491129951285826, 0.009946299799229551, 0.11344364114730125, 0.13673936844349832, 0.1857735298848588, 0.23757975945163468, 0.2545216715528914, 0.39945381692907905, 0.45303133537919144, 0.4993901618685668, 0.5581790230951383, 0.3214431212946598, 0.35876028249763536, -0.15603430073494914, -0.11381632496990997, 0.1937463268670215, -0.1669275584266908, -0.16450192570671962, -0.15173430569307306] </p>  
-           <p id="weights"> [-2.28721472e-02  1.07842948e-02  1.95037946e-01  5.09132332e-02
-  5.78237430e-02 -5.60441348e-04  6.18884193e-02 -1.10933361e-03
-  2.31479159e-02 -4.88937072e-02  4.01135748e-02  3.36334747e-02
- -1.10382542e-04 -2.40874969e-02 -6.90407799e-02 -6.08611699e-02
-  3.64847655e-03 -1.33222923e-02 -2.71251916e-02 -2.66116081e-02] </p>
-           <p id ="intercept">0.056872363316215827</p>
-           <p id ="regression-type">multiple</p>
+           <p id="features"> ['BlueCollar', 'CommunityCollege', 'notmarried'] </p>  
+           <p id="spreadsheet-data"> [1.0, 1.0, 1.0] </p>  
+           <p id="weights"> [-3.9064245238136857, -0.47186756912794325, -0.5922628647213405] </p>
+           <p id ="intercept">0.9395872624731653</p>
+           <p id ="regression-type">logistic</p>
         </div>
         
 
