@@ -1,3 +1,9 @@
+#2 July 2021 Update
+CLEAR has been updated to now include penalized logistic regression, and to also improve its handling of dummy variables. Nevertheless the recommended default for CLEAR remains to use (non-penalized) logistic regression with AIC. 
+A second update will follow shortly in which CLEAR will switch from Tensorflow to PyTorch
+Please let me know via email if there you have any requests for improved functionality.
+A new CLEAR paper has been published which applies CLEAR to images https://arxiv.org/abs/2106.14556 . The code for this will be uploaed to GitHub once the paper is published.
+
 # Counterfactual Local Explanations via Regression (CLEAR)
 
 CLEAR explains single predictions of machine learning classifiers. It is based on the view that a satisfactory explanation of a single prediction needs to both
