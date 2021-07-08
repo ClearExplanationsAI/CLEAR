@@ -382,7 +382,7 @@ def numeric_counterfactual(explainer, feature, old_value, observation):
     # get index of the data point nearest old value  i.e. where new_value - old_value = 0 (approx)
     m = temp_df.iloc[(temp_df['new_value'] - old_value).abs().argsort()[:1]].index[0]
     # get indexes of points minimum
-    n = abs(temp_df['probability'] - CLEAR_settings.binary_decision_boundary).values
+    n = abs(temp_df['probability'] - CLEAR_settings.binary_decision_boundary).values   #
     minimums = list(argrelextrema(n, np.less)[0])
     # also find plateaus
     plateaus = list(np.where(np.diff(n) == 0)[0])
@@ -493,7 +493,7 @@ def perform_regression(explainer, single_regress):
     temp = [col for col, val in X.sum().iteritems() \
             if ((val == X.shape[0]) and (col in explainer.cat_features))]
     X.drop(temp, axis=1, inplace=True)
-    X = avoidDummyTrap(X, explainer, single_regress.data_row)
+    X, selected = avoidDummyTrap(X, explainer, single_regress.data_row,selected)
 
     if CLEAR_settings.no_polynomimals is True:
         poly_df = X.copy(deep=True)
@@ -753,7 +753,7 @@ def getCounterfactualDummies(explainer, nn_forecast, data_row, observation_num,d
         for i in y:
             x1 = len([u for u in w if u.startswith(i)])  # num dummy variables selected from categorical sensitivity file
             x2 = len([u for u in explainer.cat_features if u.startswith(i)])  # dummy variables in data_row
-            if x2 == x1 + 1:
+            if x2 == x1 + 1:  # x1 wont include the feature actually set to 1, hence need +1
                 # drop dummy from w
                 x3 = [u for u in w if u.startswith(i)][-1]
                 w.remove(x3)
@@ -855,21 +855,28 @@ def Calculate_Adj_R_Squared(Y,predictions,classifier,single_regress,intercept):
         adjusted_r_squared = 1 - (1 - r2) * (len(Y_unweighted) - 1) / (len(Y_unweighted) - len(classifier.params)-1 - 1)
     return (adjusted_r_squared)
 
-def  avoidDummyTrap(X, explainer,data_row):
+def  avoidDummyTrap(X, explainer,data_row,selected):
         for i in explainer.category_prefix:
            X_features =  X.columns.to_list()
            w = len([u for u in X_features if u.startswith(i)])
            #check if a feature has already been dropped
            r = len([u for u in explainer.cat_features if u.startswith(i)])
+           s = len([u for u in selected if u.startswith(i)])
            if w == r and w > 1:
            # do not drop feature that has value of 1
            # drop feature with lowest count
-                z = [col for col in data_row if(col in explainer.cat_features) and (data_row.loc[0, col] == 1)]
-                v= [[col, val] for col, val in X.sum().iteritems() if ((col.startswith(i)) and (col not in z))]
-                val, idx = min((val[1], idx) for (idx, val) in enumerate(v))
-                feature_to_drop = v[idx][0]
-                X.drop([feature_to_drop], axis=1, inplace = True)
-        return X
+           # first check if all selected features can be kept
+            if s != r:
+                z = [col for col in data_row if(col in explainer.cat_features) and ((data_row.loc[0, col] == 1) or (col in selected)) ]
+            else:
+                z = [col for col in data_row if((col in explainer.cat_features) and (data_row.loc[0, col] == 1))]
+            v= [[col, val] for col, val in X.sum().iteritems() if ((col.startswith(i)) and (col not in z))]
+            val, idx = min((val[1], idx) for (idx, val) in enumerate(v))
+            feature_to_drop = v[idx][0]
+            X.drop([feature_to_drop], axis=1, inplace = True)
+            if feature_to_drop in selected:
+                selected.drop(feature_to_drop)
+        return X, selected
 
 
 
