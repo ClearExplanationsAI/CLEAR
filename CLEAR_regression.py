@@ -390,18 +390,19 @@ def numeric_counterfactual(explainer, feature, old_value, observation):
         plateaus.append(plateaus[-1] + 1)
     minimums = minimums + plateaus
     min_found = False
+    max_index= temp_df.shape[0]-1
     while (len(minimums) != 0) and (min_found == False):
         nearest_min = minimums[abs(minimums - m).argmin()]
         # check if min corresponds to CLEAR_settings.binary_decision_boundary:
         if temp_df.loc[nearest_min, 'probability'] >= CLEAR_settings.binary_decision_boundary:
-            if (temp_df.loc[nearest_min + 1, 'probability'] <= CLEAR_settings.binary_decision_boundary) \
-                    or (temp_df.loc[nearest_min - 1, 'probability'] <= CLEAR_settings.binary_decision_boundary):
+            if (temp_df.loc[min(nearest_min + 1,max_index), 'probability'] <= CLEAR_settings.binary_decision_boundary) \
+                    or (temp_df.loc[max(nearest_min - 1,0), 'probability'] <= CLEAR_settings.binary_decision_boundary):
                 min_found = True
             else:
                 minimums.remove(nearest_min)
         elif temp_df.loc[nearest_min, 'probability'] < CLEAR_settings.binary_decision_boundary:
-            if (temp_df.loc[nearest_min + 1, 'probability'] > CLEAR_settings.binary_decision_boundary) \
-                    or (temp_df.loc[nearest_min - 1, 'probability'] > CLEAR_settings.binary_decision_boundary):
+            if (temp_df.loc[min(nearest_min + 1,max_index), 'probability'] > CLEAR_settings.binary_decision_boundary) \
+                    or (temp_df.loc[max(nearest_min - 1,0), 'probability'] > CLEAR_settings.binary_decision_boundary):
                 min_found = True
             else:
                 minimums.remove(nearest_min)
