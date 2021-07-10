@@ -8,7 +8,7 @@ CLEAR explains single predictions of machine learning classifiers. It is based o
 explain the value of that prediction and answer ’what-if-things-had-been-different’ questions. In doing this it needs to state the relative importance of the input features and show how they interact. A
 satisfactory explanation must also be measurable and state how well it can explain a model. It *must know when it does not know*
 
-Please note CLEAR is designed to explain an AI system's classification probabilities NOT classication classes
+Please note CLEAR is designed to explain an AI system's classification probabilities NOT classification classes
 
 ### Prerequisites
 
